@@ -95,23 +95,23 @@ static char *nouns[] = {
 	"dog", "parrot", "bicycle", "pot plant", "emotion", "emulsion", "paint", "eiderdown",
 	"biscuit", "glove", "hoover", "chicken", "pony", "bath", "fishing rod", "peanut", 
 	"furniture", "crash mat", "snooker cue", "unwashed masses", "wahsing line", "epilator",
-	"yard", "garden", "house", "cake"
+	"yard", "mud", "hamster", "cake"
 };
 
 static char *ingVerbs[] = {
-	"rubbing", "fishing", "farming", "carrying", "asking", "questioning", "keeping", "shopping",
+	"rubbing", "fishing", "farming", "carrying", "asking", "questioning", "keeping", "drink",
 	"icing", "dressing", "picking", "working", "licking", "kissing", "hiding", "filing",
-	"riding", "running", "walking", "stopping", "buying", "cooking", "preparing",
+	"riding", "running", "walking", "stopping", "tickling", "cooking", "preparing",
 	"waxing", "plucking", "shaving", "agitating", "frightening", "explaining", "saying",
-	"smelling", "annoying"
+	"smelling", "annoying", "decanting", "sailing"
 };
 
 static char *verbs[] = {
-	"rub", "fish", "farm", "carry", "ask", "question", "keep", "shop",
+	"rub", "fish", "farm", "carry", "ask", "question", "keep", "drink",
 	"ice", "dress", "pick", "work", "lick", "kiss", "hide", "file",
-	"ride", "run", "walk", "stop", "buy", "cook", "prepare",
+	"ride", "run", "walk", "stop", "tickle", "cook", "prepare",
 	"wax", "pluck", "shave", "agitate", "frighten", "explain", "say",
-	"smell", "annoy"
+	"smell", "annoy", "decant", "sail"
 };
 
 static char *adjectives[] = {
