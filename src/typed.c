@@ -251,7 +251,7 @@ static void ProcessEvent(
 				DeleteEvent(state, event->index);
 				if(target->type == ENTTYPE_SCORELABEL) {
 					BITSET(target->state, ENTSTATE_DRAWONCE);
-					if(target->string.postion == 7) {
+					if(target->string.position == 7) {
 						DeleteEntityAt(state, target->index);
 					}
 				}
