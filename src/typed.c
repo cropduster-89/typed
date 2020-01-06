@@ -250,7 +250,7 @@ static void ProcessEvent(
 				target->pos = event->move.destination;
 				DeleteEvent(state, event->index);
 				if(target->type == ENTTYPE_SCORELABEL) {
-					if(target->string.postion == 7) {
+					if(target->string.position > 6) {
 						DeleteEntityAt(state, target->index);
 					}
 				}
