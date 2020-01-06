@@ -108,7 +108,7 @@ static bool TakingReturn(
 {
 	return(BITCHECK(state->global, GLOBAL_GAME) &&
 	       BITCHECK(state->input.state, ISTATE_RETURN) &&
-		state->atLine > 0 && FreeEvent(state));
+		state->atLine < state->outputLines && FreeEvent(state));
 }
 
 static bool TakingBackspace(
