@@ -17,7 +17,7 @@ static char *headerStrings[] = {
 	"If it Crashes you're doing it Wrong",
 };
 
-static char inputString[4][800] = {
+static char inputString[3][800] = {
 	{
 		"I don't think he's %s the %s properly. Last time I saw him he was "					//2
 		"%s putting the %s down the %s. That's just %s, %s, and to be frank, %s. There's so many "		//6
@@ -28,15 +28,13 @@ static char inputString[4][800] = {
 		"and I've nearly run out of %ss.\" I mean, what's %s %ss got to do with anything. I'm loosing " 	//3
 		"faith with the whole thing at this point, he can %s his own %s.\0"					//2				//2
 	}, {
-		"When %s %s, there are 5 rules to %s; 1, never mix your %s with the %s (I don't think I need "		//5
-		"explain why that's a %s idea). 2, if you need to %s %s %s, do it %s - I've lost count of "		//5
-		"times I %sed without first %s %s, and I don't want you to make the same mistakes - be %s when you "	//4
-		"%s. 3, Keep a %s %s nearby at all times, there's nothing worse than %s without a %s on hand "		//5
-		"should the worst happen. 4. Errr, I can't remember... funny thing, I was just thinking about " 	//0
-		"%s this morning, while %s the %s... and now... nothing! Was there another one after 4? My %s " 	//4
-		"has left me %s and %s. I'm sure this information is avaible online somehwere, just be %s "		//3
-		"when searching for %s related stuff as there's a lot of %s things out there. I'd hate to see "		//2
-		"you %s %s.\0"												//2
+		"\"Ever since she was young and %s, she was obsessed with %s %ss. Her parents %s lamented this, thinking "	//4
+		"this wasn't the %s future they had planned, \"She should be %s %s or something %s like that!\" They "		//4
+		"would %s say to each other. But nothing would stop her, and now, 20 %s, and %s years later, she's still %s "	//4
+		"%s with the same %s as before, and has become a leading authority in the %s of %s. Her papers on the "	//4
+		"%s %ss of the region has become one of the most %s in the field, and earned her the %s, %s %s "	//6
+		"award. Try %s a %s with a CV like that. So please %s welcome our keynote speaker, the %s woman with the "	//4
+		"hair weaved entirely from %s, and %s %ss!\", \"My %s thanks, Leslie.\"\0"					//4			//4
 	}, {
 		"Herbert looked into Audrey's %s eyes, and was instantly taken back many years, to one %s day. "	//2
 		"Audrey had just finished %s some %ss, and he had hurried home %s so as not to miss the %s. "		//4
@@ -71,12 +69,13 @@ enum string_slots inputStringSlots[][30] = {
 		SLOT_NOUN, SLOT_VERBING, SLOT_NOUN, 
 		SLOT_VERB, SLOT_NOUN
 	}, {
-		SLOT_VERBING, SLOT_NOUN, SLOT_VERB, SLOT_NOUN, SLOT_NOUN,
-		SLOT_ADJ, SLOT_ADJLY, SLOT_VERB, SLOT_NOUN, SLOT_ADJLY, 
-		SLOT_VERB, SLOT_ADJLY, SLOT_VERBING, SLOT_ADJ,
-		SLOT_VERB, SLOT_ADJ, SLOT_NOUN, SLOT_VERBING, SLOT_NOUN,
-		SLOT_VERBING, SLOT_VERBING, SLOT_NOUN, SLOT_NOUN, SLOT_ADJ, SLOT_ADJ, SLOT_ADJ,
-		SLOT_NOUN, SLOT_ADJ, SLOT_ADJLY, SLOT_VERB
+		SLOT_ADJ, SLOT_VERBING, SLOT_NOUN, SLOT_ADJLY,
+		SLOT_ADJ, SLOT_VERBING, SLOT_NOUN, SLOT_ADJ,
+		SLOT_ADJLY, SLOT_ADJ, SLOT_ADJ, SLOT_VERBING,
+		SLOT_NOUN, SLOT_NOUN, SLOT_VERBING, SLOT_NOUN,
+		SLOT_ADJ, SLOT_NOUN, SLOT_ADJ, SLOT_ADJ, SLOT_ADJ, SLOT_NOUN,
+		SLOT_VERBING, SLOT_NOUN, SLOT_ADJLY, SLOT_ADJ,
+		SLOT_NOUN, SLOT_ADJ, SLOT_NOUN, SLOT_ADJ
 	},  {
 		SLOT_ADJ, SLOT_ADJ, 
 		SLOT_VERBING, SLOT_NOUN, SLOT_ADJLY, SLOT_NOUN,

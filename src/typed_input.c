@@ -67,9 +67,10 @@ static void TakeReturn(
 	struct game_state *state,
 	struct entity *inputControl)
 {
-	state->correctWordsCarry += state->correctWords;
-	state->lettersWrongCarry += state->lettersWrong;
-	state->lettersTypedCarry += state->lettersTyped;
+	struct game_score *score = &state->score;
+	score->correctWordsCarry += score->correctWords;
+	score->lettersWrongCarry += score->lettersWrong;
+	score->lettersTypedCarry += score->lettersTyped;
 	struct entity *progressRect = GetProgressRect(state);
 	progressRect->dim.x = 0;
 	progressRect->pos.y -= 25.0f;

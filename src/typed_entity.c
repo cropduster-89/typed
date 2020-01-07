@@ -1,3 +1,11 @@
+extern void RedrawAll(
+	struct game_state *state)
+{
+	for(int32_t i = 0; i < MAX_ENTITIES; ++i) {		
+		BITCLEAR(state->entities[i].state, ENTSTATE_WASDRAWN);
+	}
+}
+
 extern struct entity *GetCurrentOutputLine(
 	struct game_state *state)
 {
@@ -30,7 +38,7 @@ static struct entity *GetProgressRect(
 extern void RedrawAllScores(
 	struct game_state *state)
 {
-	for(int32_t i = ENTALIAS_DYNAMICSTART; i < state->entityCount; ++i) {
+	for(int32_t i = ENTALIAS_DYNAMICSTART; i < MAX_ENTITIES; ++i) {
 		if(state->entities[i].type == ENTTYPE_SCORELABEL) {
 			BITCLEAR(state->entities[i].state, ENTSTATE_WASDRAWN);
 		}
@@ -325,6 +333,70 @@ extern void RePositionOutput(
 		if(state->entities[i].type == ENTTYPE_OUTPUTSTRING) {
 			state->entities[i].pos.y = pos.y - 25.0f * count;
 			count++;			
+		}
+	}
+}
+
+extern void ProcessEvent(
+	struct game_state *state)
+{
+	for(int32_t i = 0; i < 24; ++i) {
+		struct entity_event *event = &state->events[i];
+		struct entity *target = &state->entities[event->parentIndex];
+		switch(event->type) {
+		case EVENT_BLINK: {
+#define BLINK_TIME 500000ull
+			if(state->timer.currentTime - event->blink.start > BLINK_TIME) {
+				BITTOGGLE(target->state, ENTSTATE_INVISIBLE);
+				event->blink.start = state->timer.currentTime;
+			}
+			break;
+		} case EVENT_FADE: {
+			if(state->timer.currentTime - event->fade.start > event->fade.end) {
+				BITTOGGLE(target->state, ENTSTATE_INVISIBLE);
+				event->blink.start = state->timer.currentTime;
+				DeleteEvent(state, event->index);
+			}
+			break;
+		} case EVENT_FLASH: {
+			if(event->flash.duration != 0 && state->timer.currentTime - event->flash.startTime >
+			   event->flash.duration) {
+				DeleteEvent(state, event->index);
+				ChangeLabelState(target, CHARSTATE_BLACK);
+			} else if(state->timer.currentTime - event->flash.lastFlash > event->flash.interval) {
+				event->flash.lastFlash = state->timer.currentTime;
+				if(target->string.contents[0].state == CHARSTATE_NEUTRAL) {
+					ChangeLabelState(target, CHARSTATE_BLACK);
+				} else {
+					ChangeLabelState(target, CHARSTATE_NEUTRAL);
+				}
+			}
+			break;
+		} case EVENT_MOVEUP:
+		case EVENT_MOVEDOWN:
+		case EVENT_MOVELEFT: {
+			target->pos = AddVec2(target->pos, event->move.increment);
+			BITCLEAR(target->state, ENTSTATE_WASDRAWN);
+			if(event->move.CheckProgress(target->pos, event->move.destination)) {
+				target->pos = event->move.destination;
+				DeleteEvent(state, event->index);
+				if(target->type == ENTTYPE_SCORELABEL) {
+					BITSET(target->state, ENTSTATE_DRAWONCE);
+					if(target->string.position == 7) {
+						DeleteEntityAt(state, target->index);
+					}
+				}
+			}
+			if(target->type == ENTTYPE_OUTPUTSTRING) {
+				BITCLEAR(state->entities[ENTALIAS_OUTPUTRECT].state, ENTSTATE_WASDRAWN);
+			} else if(target->type == ENTTYPE_SCORELABEL) {
+				for(int32_t i = ENTALIAS_SCOREBOARDBACK; i <= ENTALIAS_SCORELINE6; ++i) {
+					BITCLEAR(state->entities[i].state, ENTSTATE_WASDRAWN);
+				}
+				RedrawAllScores(state);
+			}
+			break;
+		} default: break;
 		}
 	}
 }

@@ -116,6 +116,18 @@ extern void CreateUi(
 	float yAnchor = (float)buffer->y - 80.0f;
 	float yAnchorInputTop = yAnchor - 150;
 	float yAnchorInputBottom = yAnchor - 185;
+	
+	union vec2 backRectPos = {
+		.x = 0,
+		.y = 0
+	};
+	union vec2 backRectDim = {
+		.x = bufferX,
+		.y = bufferY
+	};	
+	struct entity *backRect = NewEntity(state, backRectPos, backRectDim, ENTTYPE_GENERICRECT);
+	backRect->rect.colour = COL_BLACK;
+	BITSET(backRect->state, ENTSTATE_DRAWONCE);
 		
 	CreateBanner(state, buffer);	
 	CreateInput(state, buffer);	

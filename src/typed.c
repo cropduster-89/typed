@@ -66,7 +66,7 @@ static void NewScore(
 		int32_t i = 0;
 		int32_t atPosition = 1;
 		for(; i < scoreCount; ++i) {
-			if(scores[i]->string.length > state->wpm) {
+			if(scores[i]->string.length > state->score.wpm) {
 				atPosition++;
 				continue;
 			} else {
@@ -87,7 +87,7 @@ static void NewScore(
 		backBox->pos.x, backBox->pos.y,
 		backBox->dim.x, backBox->dim.y);
 	BITSET(newScore->state, ENTSTATE_ISCLIPPED);
-	CreateScore(newScore, state->wpm, newPosition, CHARSTATE_NEUTRAL);
+	CreateScore(newScore, state->score.wpm, newPosition, CHARSTATE_NEUTRAL);
 	struct entity_event *event = NewEvent(state, newScore->index, EVENT_MOVEUP);
 	scoreBasePos.y -= positionOffset;
 	NewMoveEvent(state, event, FloatToVec2(scorePos.x, scoreBasePos.y), FloatToVec2(0, 4.5f));
@@ -99,66 +99,6 @@ static void ReInitOutput(
 {
 	RePositionOutput(state);
 	state->atLine = 0;
-}
-
-extern void RestartGame(
-	struct game_state *state)
-{
-	api.DeAllocate(state->outputStringBuffer);
-	ResetTimerRects(state);
-	srand(state->timer.currentTime);
-	BITCLEAR(state->global, GLOBAL_POST);
-	BITCLEAR(state->global, GLOBAL_GAME);
-	state->outputStringBufferSize = 0;
-	state->wpm = 0;
-	state->correctWords = 0;
-	state->correctWordsCarry = 0;
-	BITCLEAR(GetEntityByAlias(state, ENTALIAS_OUTPUTRECT)->state, ENTSTATE_WASDRAWN);
-	DeleteAllEntitiesOfType(state, ENTTYPE_OUTPUTSTRING);
-	DeleteAllEntitiesOfType(state, ENTTYPE_PROGRESSRECT);
-	ClearInput(state);
-	CreateOutputEntities(state, bufferX, bufferY);
-	state->atLine = 0;
-}
-
-extern void NewGame(
-	struct game_state *state)
-{
-	InitTimerRects(state);
-	union vec2 progressBarPos = {
-		.x = bufferX * 0.25f,
-		.y = bufferY - 80.0f - 33.0f
-	};
-	union vec2 ProgressBarDim = {
-		.x = 0,
-		.y = 2.0f
-	};
-	struct entity *bannerRect = NewEntity(state, progressBarPos, ProgressBarDim, ENTTYPE_PROGRESSRECT);
-	bannerRect->rect.colour = COL_GREEN;
-
-	state->timer.gameStartTime = state->timer.currentTime;
-	state->timer.gameLength = SECOND * 60;
-	state->atLine = 0;
-
-	ReInitOutput(state);
-	BITSET(state->global, GLOBAL_GAME);
-}
-
-static void EndGame(
-	struct game_state *state)
-{
-	BITCLEAR(state->global, GLOBAL_GAME);
-	BITSET(state->global, GLOBAL_POST);
-	struct entity *progressRect = GetProgressRect(state);
-	DeleteEntityAt(state, progressRect->index);
-	struct entity *inputString = GetEntityByAlias(state, ENTALIAS_INPUTSTRING);
-	inputString->string.length = 0;
-	inputString->string.lengthInPixels = 0;
-	BITCLEAR(GetEntityByAlias(state, ENTALIAS_WPMSCORE)->state, ENTSTATE_WASDRAWN);
-	BITCLEAR(GetEntityByAlias(state, ENTALIAS_ACCSCORE)->state, ENTSTATE_WASDRAWN);
-	BITCLEAR(GetEntityByAlias(state, ENTALIAS_FUNSCORE)->state, ENTSTATE_WASDRAWN);
-	RedrawOutput(state);
-	NewScore(state);
 }
 
 extern void CompareInput(
@@ -195,79 +135,15 @@ extern void CompareInput(
 		}
 		lettersTyped = i;
 	}
-	state->correctWords = correctWords;
-	state->lettersWrong = wrongLetters;
-	state->lettersTyped = lettersTyped;
+	state->score.correctWords = correctWords;
+	state->score.lettersWrong = wrongLetters;
+	state->score.lettersTyped = lettersTyped;
 }
 
 static void UpdateTime(
 	struct game_timer *timer)
 {
 	timer->currentTime = (api.GetTime() - timer->baseTime);
-}
-
-static void ProcessEvent(
-	struct game_state *state)
-{
-	for(int32_t i = 0; i < 24; ++i) {
-		struct entity_event *event = &state->events[i];
-		struct entity *target = &state->entities[event->parentIndex];
-		switch(event->type) {
-		case EVENT_BLINK: {
-#define BLINK_TIME 500000ull
-			if(state->timer.currentTime - event->blink.start > BLINK_TIME) {
-				BITTOGGLE(target->state, ENTSTATE_INVISIBLE);
-				event->blink.start = state->timer.currentTime;
-			}
-			break;
-		} case EVENT_FADE: {
-			if(state->timer.currentTime - event->fade.start > event->fade.end) {
-				BITTOGGLE(target->state, ENTSTATE_INVISIBLE);
-				event->blink.start = state->timer.currentTime;
-				DeleteEvent(state, event->index);
-			}
-			break;
-		} case EVENT_FLASH: {
-			if(event->flash.duration != 0 && state->timer.currentTime - event->flash.startTime >
-			   event->flash.duration) {
-				DeleteEvent(state, event->index);
-				ChangeLabelState(target, CHARSTATE_BLACK);
-			} else if(state->timer.currentTime - event->flash.lastFlash > event->flash.interval) {
-				event->flash.lastFlash = state->timer.currentTime;
-				if(target->string.contents[0].state == CHARSTATE_NEUTRAL) {
-					ChangeLabelState(target, CHARSTATE_BLACK);
-				} else {
-					ChangeLabelState(target, CHARSTATE_NEUTRAL);
-				}
-			}
-			break;
-		} case EVENT_MOVEUP:
-		case EVENT_MOVEDOWN:
-		case EVENT_MOVELEFT: {
-			target->pos = AddVec2(target->pos, event->move.increment);
-			BITCLEAR(target->state, ENTSTATE_WASDRAWN);
-			if(event->move.CheckProgress(target->pos, event->move.destination)) {
-				target->pos = event->move.destination;
-				DeleteEvent(state, event->index);
-				if(target->type == ENTTYPE_SCORELABEL) {
-					BITSET(target->state, ENTSTATE_DRAWONCE);
-					if(target->string.position == 7) {
-						DeleteEntityAt(state, target->index);
-					}
-				}
-			}
-			if(target->type == ENTTYPE_OUTPUTSTRING) {
-				BITCLEAR(state->entities[ENTALIAS_OUTPUTRECT].state, ENTSTATE_WASDRAWN);
-			} else if(target->type == ENTTYPE_SCORELABEL) {
-				for(int32_t i = ENTALIAS_SCOREBOARDBACK; i <= ENTALIAS_SCORELINE6; ++i) {
-					BITCLEAR(state->entities[i].state, ENTSTATE_WASDRAWN);
-				}
-				RedrawAllScores(state);
-			}
-			break;
-		} default: break;
-		}
-	}
 }
 
 static void DrawRect(
@@ -326,7 +202,7 @@ static void ProcessUpdateString(
 			};
 			NewMoveEvent(state, event, destination, FloatToVec2(-7.3f, 0));
 			char *newUpdate;
-			if(state->wpm < 60) {
+			if(state->score.wpm < 60) {
 				newUpdate = encouragementStrings[rand() % ARRAY_COUNT(encouragementStrings)];
 			} else {
 				newUpdate = praiseStrings[rand() % ARRAY_COUNT(praiseStrings)];
@@ -353,7 +229,7 @@ static void PrepAccString(
 	BITCLEAR(accLbl->state, ENTSTATE_WASDRAWN);
 	BITCLEAR(state->entities[ENTALIAS_SCOREBACK].state, ENTSTATE_WASDRAWN);
 	char buffer[12];
-	sprintf(buffer, "%.0f%%", state->accuracey);
+	sprintf(buffer, "%.0f%%", state->score.accuracey);
 	CreateLabel(current, buffer, CHARSTATE_UI);
 }
 
@@ -365,14 +241,14 @@ static void PrepWpmString(
 	BITCLEAR(wpmLbl->state, ENTSTATE_WASDRAWN);
 	BITCLEAR(state->entities[ENTALIAS_SCOREBACK].state, ENTSTATE_WASDRAWN);
 	char buffer[12];
-	sprintf(buffer, "%d", state->wpm);
+	sprintf(buffer, "%d", state->score.wpm);
 	CreateLabel(current, buffer, CHARSTATE_UI);
 }
 
 static void ProcessEntities(
 	struct game_state *state)
 {
-	for(int32_t i = 0; i < state->entityCount; i++) {
+	for(int32_t i = 0; i < MAX_ENTITIES; i++) {
 		struct entity *current = &state->entities[i];
 		switch(current->type) {
 		case ENTTYPE_SCORELABEL:
@@ -381,7 +257,7 @@ static void ProcessEntities(
 			DrawString(state, current);
 			break;
 		} case ENTTYPE_INPUTSTRING: {
-			InputControl(state, current);
+			
 			DrawString(state, current);
 			break;
 		} case ENTTYPE_UPDATESTRING: {
@@ -434,8 +310,9 @@ static uint32_t GetWpm(
 static float GetAcc(
 	struct game_state *state)
 {
-	float max = state->lettersTyped + state->lettersTypedCarry;
-	float value = max - (state->lettersWrong + state->lettersWrongCarry);
+	struct game_score *score = &state->score;
+	float max = score->lettersTyped + score->lettersTypedCarry;
+	float value = max - (score->lettersWrong + score->lettersWrongCarry);
 	float result = (float)value / (float)max * 100.0f;
 	return(result);
 }
@@ -443,9 +320,10 @@ static float GetAcc(
 static void UpdateAcc(
 	struct game_state *state)
 {
-	state->accuracey = GetAcc(state);
+	struct game_score *score = &state->score;
+	score->accuracey = GetAcc(state);
 	struct entity *accBar = GetEntityByAlias(state, ENTALIAS_ACCBAR);
-	accBar->dim.x = (float)state->accuracey * 2.5f;
+	accBar->dim.x = (float)score->accuracey * 2.5f;
 	struct entity *accBarEnd = GetEntityByAlias(state, ENTALIAS_ACCBAREND);
 	accBarEnd->pos.x = accBar->dim.x + accBar->pos.x;
 }
@@ -453,11 +331,94 @@ static void UpdateAcc(
 static void UpdateWPM(
 	struct game_state *state)
 {
-	state->wpm = GetWpm(&state->timer, state->correctWords + state->correctWordsCarry);
+	struct game_score *score = &state->score;
+	score->wpm = GetWpm(&state->timer, score->correctWords + score->correctWordsCarry);
 	struct entity *wpmBar = GetEntityByAlias(state, ENTALIAS_WPMBAR);
-	wpmBar->dim.x = (float)state->wpm > 100.0f ? 100.0f * 2.5f : (float)state->wpm * 2.5f;
+	wpmBar->dim.x = (float)score->wpm > 100.0f ? 100.0f * 2.5f : (float)score->wpm * 2.5f;
 	struct entity *wpmBarEnd = GetEntityByAlias(state, ENTALIAS_WPMBAREND);
 	wpmBarEnd->pos.x = wpmBar->dim.x + wpmBar->pos.x;
+}
+
+extern void RestartGame(
+	struct game_state *state)
+{
+	api.DeAllocate(state->outputStringBuffer);
+	
+	ResetTimerRects(state);
+	srand(state->timer.currentTime);
+	BITCLEAR(state->global, GLOBAL_POST);
+	BITCLEAR(state->global, GLOBAL_GAME);
+	
+	state->outputStringBufferSize = 0;
+	struct game_score nullScore = {};
+	state->score = nullScore;
+	state->atLine = 0;
+	GetEntityByAlias(state, ENTALIAS_WPMBAR)->dim.x = 0;
+	GetEntityByAlias(state, ENTALIAS_ACCBAR)->dim.x = 0;
+	UpdateWPM(state);
+	UpdateAcc(state);
+	RedrawAll(state);
+	DeleteAllEntitiesOfType(state, ENTTYPE_OUTPUTSTRING);
+	DeleteAllEntitiesOfType(state, ENTTYPE_PROGRESSRECT);
+	
+	ClearInput(state);
+	CreateOutputEntities(state, bufferX, bufferY);	
+}
+
+extern void NewGame(
+	struct game_state *state)
+{
+	InitTimerRects(state);
+	
+	union vec2 progressBarPos = {
+		.x = bufferX * 0.25f,
+		.y = bufferY - 80.0f - 33.0f
+	};
+	union vec2 ProgressBarDim = {
+		.x = 0,
+		.y = 2.0f
+	};
+	struct entity *bannerRect = NewEntity(state, progressBarPos, ProgressBarDim, ENTTYPE_PROGRESSRECT);
+	bannerRect->rect.colour = COL_GREEN;
+
+	state->timer.gameStartTime = state->timer.currentTime;
+	state->timer.gameLength = SECOND * 60;
+	state->atLine = 0;
+
+	ReInitOutput(state);
+	BITSET(state->global, GLOBAL_GAME);
+}
+
+static void EndGame(
+	struct game_state *state)
+{
+	BITCLEAR(state->global, GLOBAL_GAME);
+	BITSET(state->global, GLOBAL_POST);
+	struct entity *progressRect = GetProgressRect(state);
+	DeleteEntityAt(state, progressRect->index);
+	struct entity *inputString = GetEntityByAlias(state, ENTALIAS_INPUTSTRING);
+	inputString->string.length = 0;
+	inputString->string.lengthInPixels = 0;
+	BITCLEAR(GetEntityByAlias(state, ENTALIAS_WPMSCORE)->state, ENTSTATE_WASDRAWN);
+	BITCLEAR(GetEntityByAlias(state, ENTALIAS_ACCSCORE)->state, ENTSTATE_WASDRAWN);
+	BITCLEAR(GetEntityByAlias(state, ENTALIAS_FUNSCORE)->state, ENTSTATE_WASDRAWN);
+	RedrawOutput(state);
+	NewScore(state);
+}
+
+static void InitState(
+	struct game_state *state,
+	struct screen_buffer *buffer)
+{
+	bufferX = buffer->x;
+	bufferY = buffer->y;
+	state->timer.baseTime = api.GetTime();
+	srand(state->timer.baseTime);
+	CreateUi(state, buffer);
+	CreateOutputEntities(state, buffer->x, buffer->y);
+	CreateLabel(GetEntityByAlias(state, ENTALIAS_HEADER),
+		headerStrings[rand() % ARRAY_COUNT(headerStrings)], CHARSTATE_UI);
+	BITSET(state->global, GLOBAL_INIT);
 }
 
 extern void GameLoop(
@@ -465,27 +426,20 @@ extern void GameLoop(
 	struct screen_buffer *buffer)
 {
 	if(!BITCHECK(state->global, GLOBAL_INIT)) {
-		bufferX = buffer->x;
-		bufferY = buffer->y;
-		state->timer.baseTime = api.GetTime();
-		srand(state->timer.baseTime);
-		CreateUi(state, buffer);
-		CreateOutputEntities(state, buffer->x, buffer->y);
-		CreateLabel(GetEntityByAlias(state, ENTALIAS_HEADER),
-			headerStrings[rand() % ARRAY_COUNT(headerStrings)], CHARSTATE_UI);
-		BITSET(state->global, GLOBAL_INIT);
+		InitState(state, buffer);
 	}
 	UpdateTime(&state->timer);
-	ProcessEvent(state);
-	ProcessEntities(state);
+	InputControl(state, GetEntityByAlias(state, ENTALIAS_INPUTSTRING));	
 	if(BITCHECK(state->global, GLOBAL_GAME)) {
 		if(state->timer.currentTime - state->timer.gameStartTime > state->timer.gameLength) {
 			EndGame(state);
-		} else {
+		} else {			
 			CompareInput(state, GetEntityByAlias(state, ENTALIAS_INPUTSTRING));
 			UpdateWPM(state);
 			UpdateAcc(state);
 		}
 	}
+	ProcessEvent(state);
+	ProcessEntities(state);
 	ProcessRenderJobs(state, buffer);
 }
