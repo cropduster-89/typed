@@ -67,6 +67,8 @@ struct game_state {
 	int32_t atLine;
 	uint32_t outputLines;
 	
+	bool keypress; //put this somehwere decent
+	
 	uint32_t global;
 };
 

@@ -100,7 +100,7 @@ static void ReInitOutput(
 	RePositionOutput(state);
 	state->atLine = 0;
 }
-
+#if 0
 extern void CompareInput(
 	struct game_state *state,
 	struct entity *inputString)
@@ -139,7 +139,44 @@ extern void CompareInput(
 	state->score.lettersWrong = wrongLetters;
 	state->score.lettersTyped = lettersTyped;
 }
-
+#else
+extern void CompareInput(
+	struct game_state *state,
+	struct entity *inputString)
+{
+	struct entity *line = GetCurrentOutputLine(state);
+	bool completeWord = true;
+	uint32_t correctWords = 0;
+	uint32_t wrongLetters = 0;
+	uint32_t lettersTyped = 0;
+	RedrawOutput(state);
+	char input = inputString->string.contents[inputString->string.length].glyph;
+	char output = line->string.contents[inputString->string.length].glyph;
+	for(int32_t i = 0; i < line->string.length; ++i) {
+		char input = inputString->string.contents[i].glyph;
+		char output = line->string.contents[i].glyph;
+		bool correctLetter = (input == output);
+		if(input == ' ' || line->string.contents[i + 1].glyph == '\0') {
+			if(completeWord) {
+				correctWords++;
+			}
+			completeWord = true;
+		}
+		if(!correctLetter) {
+			completeWord = false;
+		}
+	}
+	bool currentWord = (input == output);
+	if(line->string.contents[inputString->string.length].state == CHARSTATE_NEUTRAL) {
+		if(currentWord) {
+			line->string.contents[inputString->string.length].state = CHARSTATE_RIGHT;
+		} else {
+			line->string.contents[inputString->string.length].state = CHARSTATE_WRONG;
+		}
+	}
+	state->score.correctWords = correctWords;
+}	
+#endif
 static void UpdateTime(
 	struct game_timer *timer)
 {

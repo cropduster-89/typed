@@ -28,19 +28,36 @@ static void DeIncrementProgressRect(
 	}
 }
 
+
+extern bool InputIsCorrect(
+	struct game_state *state,
+	struct entity *inputString)
+{
+	struct entity *line = GetCurrentOutputLine(state);	
+	bool result = state->input.inputCharacter == 
+		line->string.contents[inputString->string.length].glyph;
+	return(result);
+}
+
 static void TakeInput(
 	struct game_state *state,
 	struct entity *inputControl)
-{
-	inputControl->string.contents[inputControl->string.length++].glyph =
-		state->input.inputCharacter;
-	if(state->input.inputCharacter != ' ') {
-		inputControl->string.lengthInPixels += GetCharacterWidth(state,
-			state->input.inputCharacter);
+{	
+	state->keypress = true;
+	state->score.lettersTyped++;
+	if(InputIsCorrect(state, inputControl)) {
+		inputControl->string.contents[inputControl->string.length++].glyph =
+			state->input.inputCharacter;
+		if(state->input.inputCharacter != ' ') {
+			inputControl->string.lengthInPixels += GetCharacterWidth(state,
+				state->input.inputCharacter);
+		} else {
+			inputControl->string.lengthInPixels += 10.0f;
+		}
+		IncrementProgressRect(state, inputControl);
 	} else {
-		inputControl->string.lengthInPixels += 10.0f;
+		state->score.lettersWrong++;
 	}
-	IncrementProgressRect(state, inputControl);
 }
 
 static void TakeBackspace(
