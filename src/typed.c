@@ -100,58 +100,14 @@ static void ReInitOutput(
 	RePositionOutput(state);
 	state->atLine = 0;
 }
-#if 0
-extern void CompareInput(
+
+extern void ComputeCorrectWords(
 	struct game_state *state,
 	struct entity *inputString)
 {
 	struct entity *line = GetCurrentOutputLine(state);
 	bool completeWord = true;
-	uint32_t correctWords = 0;
-	uint32_t wrongLetters = 0;
-	uint32_t lettersTyped = 0;
-	RedrawOutput(state);
-	for(int32_t i = 0; i < line->string.length; ++i) {
-		char input = inputString->string.contents[i].glyph;
-		char output = line->string.contents[i].glyph;
-		bool correctLetter = (input == output);
-		if(i < inputString->string.length) {
-			if(input == ' ' || line->string.contents[i + 1].glyph == '\0') {
-				if(completeWord) {
-					correctWords++;
-				}
-				completeWord = true;
-			}
-			if(!correctLetter) {
-				wrongLetters++;
-				completeWord = false;
-				line->string.contents[i].state = CHARSTATE_WRONG;
-			} else {
-				line->string.contents[i].state = CHARSTATE_RIGHT;
-			}
-		}
-		if(inputString->string.length <= i) {
-			line->string.contents[i].state = CHARSTATE_NEUTRAL;
-		}
-		lettersTyped = i;
-	}
-	state->score.correctWords = correctWords;
-	state->score.lettersWrong = wrongLetters;
-	state->score.lettersTyped = lettersTyped;
-}
-#else
-extern void CompareInput(
-	struct game_state *state,
-	struct entity *inputString)
-{
-	struct entity *line = GetCurrentOutputLine(state);
-	bool completeWord = true;
-	uint32_t correctWords = 0;
-	uint32_t wrongLetters = 0;
-	uint32_t lettersTyped = 0;
-	RedrawOutput(state);
-	char input = inputString->string.contents[inputString->string.length].glyph;
-	char output = line->string.contents[inputString->string.length].glyph;
+	uint32_t correctWords = 0;	
 	for(int32_t i = 0; i < line->string.length; ++i) {
 		char input = inputString->string.contents[i].glyph;
 		char output = line->string.contents[i].glyph;
@@ -166,17 +122,32 @@ extern void CompareInput(
 			completeWord = false;
 		}
 	}
-	bool currentWord = (input == output);
-	if(line->string.contents[inputString->string.length].state == CHARSTATE_NEUTRAL) {
-		if(currentWord) {
-			line->string.contents[inputString->string.length].state = CHARSTATE_RIGHT;
-		} else {
-			line->string.contents[inputString->string.length].state = CHARSTATE_WRONG;
-		}
-	}
 	state->score.correctWords = correctWords;
+}
+
+extern void CompareInput(
+	struct game_state *state,
+	struct entity *inputString)
+{	
+	char input = state->input.inputCharacter;
+	struct entity *line = GetCurrentOutputLine(state);
+	char output = line->string.contents[inputString->string.length].glyph;
+	bool currentWord = (input == output);
+	struct entity_character *current = &line->string.contents[inputString->string.length];	
+	if(currentWord) {
+		inputString->string.contents[inputString->string.length++].glyph =
+			state->input.inputCharacter;
+		inputString->string.lengthInPixels += GetCharacterWidth(state,
+			state->input.inputCharacter);		
+		IncrementProgressRect(state, inputString);
+		if(current->state == CHARSTATE_NEUTRAL) {
+			current->state = CHARSTATE_RIGHT;
+		}			
+	} else {
+		current->state = CHARSTATE_WRONG;
+	}		
 }	
-#endif
+
 static void UpdateTime(
 	struct game_timer *timer)
 {
@@ -466,16 +437,21 @@ extern void GameLoop(
 		InitState(state, buffer);
 	}
 	UpdateTime(&state->timer);
-	InputControl(state, GetEntityByAlias(state, ENTALIAS_INPUTSTRING));	
+	ReceiveInput(state, GetEntityByAlias(state, ENTALIAS_INPUTSTRING));	
 	if(BITCHECK(state->global, GLOBAL_GAME)) {
 		if(state->timer.currentTime - state->timer.gameStartTime > state->timer.gameLength) {
 			EndGame(state);
 		} else {			
-			CompareInput(state, GetEntityByAlias(state, ENTALIAS_INPUTSTRING));
+			if(state->input.inputCharacter != '\0') {
+				CompareInput(state, GetEntityByAlias(state, ENTALIAS_INPUTSTRING));
+				ComputeCorrectWords(state, GetEntityByAlias(state, ENTALIAS_INPUTSTRING));
+				RedrawOutput(state);
+			}
 			UpdateWPM(state);
 			UpdateAcc(state);
 		}
 	}
+	state->input.inputCharacter = '\0';
 	ProcessEvent(state);
 	ProcessEntities(state);
 	ProcessRenderJobs(state, buffer);

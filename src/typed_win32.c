@@ -139,9 +139,6 @@ LRESULT CALLBACK WindowProc(
 		} case VK_TAB: {
 			BITSET(state->input.state, ISTATE_TAB);
 			break;
-		} case VK_BACK: {
-			BITSET(state->input.state, ISTATE_BACKSPACE);
-			break;
 		} case VK_RETURN: {
 			BITSET(state->input.state, ISTATE_RETURN);
 			break;
@@ -276,6 +273,9 @@ LRESULT CALLBACK WindowProc(
 			break;
 		} case VK_OEM_3: {
 			state->input.inputCharacter = state->input.shift.isDown ? '#' : '\'';
+			break;
+		} case VK_OEM_7: {
+			state->input.inputCharacter = state->input.shift.isDown ? '@' : '\'';
 			break;
 		} default: break;	
 		}

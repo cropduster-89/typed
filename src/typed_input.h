@@ -11,14 +11,11 @@
        |___/|_|               
 ********************************************************************************/
 
-#include <stdint.h>
-
 enum input_state {
-	ISTATE_BACKSPACE = 0,
-	ISTATE_RETURN = 8,
-	ISTATE_PGUP = 16,
-	ISTATE_PGDOWN = 24,
-	ISTATE_TAB = 32
+	ISTATE_RETURN = 0,
+	ISTATE_PGUP = 8,
+	ISTATE_PGDOWN = 16,
+	ISTATE_TAB = 24
 };
 
 union button_state {
@@ -28,7 +25,7 @@ union button_state {
 
 struct input_control {
 	char inputCharacter;
-	uint64_t state;
+	uint32_t state;
 	
 	union button_state shift;
 };

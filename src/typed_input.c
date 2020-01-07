@@ -13,22 +13,6 @@ static void IncrementProgressRect(
 	}
 }
 
-static void DeIncrementProgressRect(
-	struct game_state *state,
-	struct entity *inputControl)
-{
-	struct entity *progressRect = GetProgressRect(state);
-	struct entity *line = GetCurrentOutputLine(state);
-	char character = line->string.contents[inputControl->string.length - 1].glyph;
-	if(character == '\0') {return;}
-	else if(character != ' ') {
-		progressRect->dim.x -= GetCharacterWidth(state, character);
-	} else {
-		progressRect->dim.x -= 10.0f;
-	}
-}
-
-
 extern bool InputIsCorrect(
 	struct game_state *state,
 	struct entity *inputString)
@@ -45,31 +29,9 @@ static void TakeInput(
 {	
 	state->keypress = true;
 	state->score.lettersTyped++;
-	if(InputIsCorrect(state, inputControl)) {
-		inputControl->string.contents[inputControl->string.length++].glyph =
-			state->input.inputCharacter;
-		if(state->input.inputCharacter != ' ') {
-			inputControl->string.lengthInPixels += GetCharacterWidth(state,
-				state->input.inputCharacter);
-		} else {
-			inputControl->string.lengthInPixels += 10.0f;
-		}
-		IncrementProgressRect(state, inputControl);
-	} else {
+	if(!InputIsCorrect(state, inputControl)) {
 		state->score.lettersWrong++;
 	}
-}
-
-static void TakeBackspace(
-	struct game_state *state,
-	struct entity *inputControl)
-{
-	DeIncrementProgressRect(state, inputControl);
-	char removedChar = inputControl->string.
-		contents[inputControl->string.length - 1].glyph;
-	inputControl->string.length--;
-	inputControl->string.lengthInPixels -= GetCharacterWidth(state, removedChar);
-	BITCLEAR(state->input.state, ISTATE_BACKSPACE);
 }
 
 extern void ClearInput(
@@ -129,14 +91,6 @@ static bool TakingReturn(
 		state->atLine < state->outputLines && FreeEvent(state));
 }
 
-static bool TakingBackspace(
-	struct game_state *state,
-	struct entity *inputControl)
-{
-	return(BITCHECK(state->input.state, ISTATE_BACKSPACE) &&
-		inputControl->string.length > 0);
-}
-
 static bool ReceiveInput(
 	struct game_state *state,
 	struct entity *inputString)
@@ -148,9 +102,6 @@ static bool ReceiveInput(
 			NewGame(state);
 		}
 		TakeInput(state, inputString);
-	} else if(TakingBackspace(state, inputString)) {
-		TakeBackspace(state, inputString);
-		result = true;
 	} else if(TakingReturn(state, inputString)) {
 		state->atLine++;
 		TakeReturn(state, inputString);
@@ -164,16 +115,6 @@ static bool ReceiveInput(
 	} else if(BITCHECK(state->input.state, ISTATE_TAB)) {
 		RestartGame(state);
 	}
-	state->input.state = 0;
-	state->input.inputCharacter = '\0';
+	state->input.state = 0;	
 	return(result);
-}
-
-extern void InputControl(
-	struct game_state *state,
-	struct entity *inputControl)
-{
-	if(ReceiveInput(state, inputControl)) {
-		CompareInput(state, inputControl);
-	}
 }
