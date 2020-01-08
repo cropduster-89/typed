@@ -81,7 +81,7 @@ enum string_slots inputStringSlots[][30] = {
 };	
 
 static char *nouns[] = {
-	"sink", "heron", "Dolmio", "pasta", "tiolet", "puppet", "beetle", "towel",
+	"sink", "heron", "Dolmio", "pasta", "toilet", "puppet", "beetle", "towel",
 	"idea", "saucepan", "dishcloth", "lemon", "salmon", "WD40", "screwdriver", "trousers",
 	"dog", "parrot", "bicycle", "pot plant", "emotion", "emulsion", "paint", "eiderdown",
 	"biscuit", "glove", "hoover", "chicken", "pony", "bath", "fishing rod", "peanut", 
