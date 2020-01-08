@@ -2,13 +2,13 @@
 
 static char *praiseStrings[] = {
 	"Wow, I'm so impressed...", "Are you proud of yourself?", "Yeah, yeah, very good",
-	"Go outside more", "Careful now", "Want a biscuit or something?",
+	"Get out more", "Careful now", "You'll get RSI", "Don't break the keyboard"
 	"Think you're winning?"
 }; 
 
 static char *encouragementStrings[] = {
 	"I'm not judging you", "I'm sure you have other skills", "What a good effort!",
-	"There's more to life than typing...", "Yeah! Good for you!", "You're normally better right?"
+	"Fine I guess", "Yeah! Good for you!", "You're normally better right?"
 }; 
 
 static char *headerStrings[] = {
