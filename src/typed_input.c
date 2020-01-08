@@ -1,3 +1,12 @@
+/********************************************************************************
+ _____                      _ 
+/__   \_   _ _ __   ___  __| |		Input implmentation
+  / /\/ | | | '_ \ / _ \/ _` |
+ / /  | |_| | |_) |  __/ (_| |		TODO Move scoring logic out somewhow
+ \/    \__, | .__/ \___|\__,_|		double up input state to received->confirmed
+       |___/|_|               		and processed in game code?
+********************************************************************************/
+
 static void IncrementProgressRect(
 	struct game_state *state,
 	struct entity *inputControl)
@@ -6,11 +15,9 @@ static void IncrementProgressRect(
 	struct entity *line = GetCurrentOutputLine(state);
 	char character = line->string.contents[inputControl->string.length - 1].glyph;
 	if(character == '\0') {return;}
-	else if(character != ' ') {
+	else {
 		progressRect->dim.x += GetCharacterWidth(state, character);
-	} else {
-		progressRect->dim.x += 10.0f;
-	}
+	} 
 }
 
 extern bool InputIsCorrect(
@@ -87,7 +94,7 @@ static bool TakingReturn(
 {
 	return(BITCHECK(state->global, GLOBAL_GAME) &&
 	       BITCHECK(state->input.state, ISTATE_RETURN) &&
-		state->atLine < state->outputLines && FreeEvent(state));
+	       state->atLine < state->outputLines && FreeEvent(state));
 }
 
 static bool ReceiveInput(

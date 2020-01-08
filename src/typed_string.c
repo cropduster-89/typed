@@ -163,6 +163,57 @@ static void CreateOutputString(
 		insertedWords[28], insertedWords[29]);	
 }
 
+extern void CreateLabel(
+	struct entity *newEntity,
+	char *content,
+	enum character_state state)
+{
+	int32_t i = 0;
+	for(char *current = content; *current != '\0'; ++current, ++i) {
+		newEntity->string.contents[i].glyph = *current;		
+		newEntity->string.contents[i].state = state;		
+	}
+	newEntity->string.length = strlen(content);
+}
+
+extern void CreateScore(
+	struct entity *newEntity,
+	uint32_t score,
+	uint32_t position,
+	enum character_state state)
+{
+	char buffer[10];
+	sprintf(buffer, "%d,    %d", position, score);
+	
+	CreateLabel(newEntity, buffer, state);
+	newEntity->string.score = score;
+	newEntity->string.position = position;
+}
+
+extern void ConvertString(
+	char *start,
+	char *end,
+	struct entity_string *entity,
+	enum character_state state)
+{
+	entity->length = end - start;
+	assert(entity->length < ARRAY_COUNT(entity->contents));
+	char *current = start;
+	for(int32_t i = 0; i < entity->length; ++i, ++current) {
+		entity->contents[i].glyph = *current;
+		entity->contents[i].state = state;
+	}
+}
+
+extern void ChangeLabelState(
+	struct entity *label,
+	enum character_state state)
+{	
+	for(int32_t i = 0; i != label->string.length; ++i) {	
+		label->string.contents[i].state = state;		
+	}
+}
+
 extern uint32_t GetCharacterWidth(
 	struct game_state *state,	
 	char glyph)

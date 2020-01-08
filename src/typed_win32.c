@@ -30,6 +30,9 @@
 	........................................_\..........._,-%.......`\
 	...................................,<`.._|_,-&``................`\		
 	Win32 Platform Layer
+	platform specific code 
+
+	TODO x11 version for linux
 ********************************************************************************/
 
 #include<windows.h>
@@ -48,6 +51,7 @@
 #include"typed_render.h"
 #include"typed_assets.h"
 #include"typed_string.h"
+#include"typed_event.h"
 #include"typed_entity.h"
 #include"typed_input.h"
 #include"typed_assets.h"
@@ -56,6 +60,7 @@
 #include"typed_assets.c"
 #include"typed_render.c"
 #include"typed_entity.c"
+#include"typed_event.c"
 #include"typed_input.c"
 #include"typed_string.c"
 #include"typed_init.c"
@@ -292,7 +297,7 @@ LRESULT CALLBACK WindowProc(
 extern PLATFORM_GET_TIME(win32_GetTime)
 {
 	struct timeval tv;
-	static const uint64_t EPOCH = (uint64_t)116444736000000000ULL;
+	static const uint64_t epoch = (uint64_t)116444736000000000ULL;
 
 	SYSTEMTIME system_time;
 	FILETIME file_time;
@@ -303,8 +308,8 @@ extern PLATFORM_GET_TIME(win32_GetTime)
 	time = ((uint64_t)file_time.dwLowDateTime );
 	time += ((uint64_t)file_time.dwHighDateTime) << 32;
 	
-	tv.tv_sec  = (int32_t) ((time - EPOCH) / 10000000L);
-	tv.tv_usec = (int32_t) (system_time.wMilliseconds * 1000);	
+	tv.tv_sec  = (int32_t)((time - epoch) / 10000000L);
+	tv.tv_usec = (int32_t)(system_time.wMilliseconds * 1000);	
 	
 	return((uint64_t) tv.tv_sec * (uint64_t)1000000UL + (uint64_t)tv.tv_usec);	
 }
@@ -462,8 +467,7 @@ int WINAPI wWinMain(
 		
 		buffer.data = winBuffer.data;
 		
-		LimitFps(lastCounter, timeGranularity);
-		
+		LimitFps(lastCounter, timeGranularity);		
 		GameLoop(state, &buffer);
 		
 		HDC dc = GetDC(window);

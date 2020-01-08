@@ -19,6 +19,16 @@ enum string_slots {
 	SLOT_ADJLY,
 };
 
+enum character_state {
+	CHARSTATE_NEUTRAL,
+	CHARSTATE_RIGHT,
+	CHARSTATE_WRONG,
+	CHARSTATE_BLACK,
+	CHARSTATE_INPUT,
+	CHARSTATE_UI,
+};
+
 uint32_t GetCharacterWidth(struct game_state *, char glyph);
+void ChangeLabelState(struct entity *, enum character_state);
 
 #endif
