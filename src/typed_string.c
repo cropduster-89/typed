@@ -47,14 +47,6 @@ static char inputString[3][800] = {
 	},
 };
 
-enum string_slots {
-	SLOT_NOUN,
-	SLOT_VERBING,
-	SLOT_VERB,
-	SLOT_ADJ,
-	SLOT_ADJLY,
-};
-
 /*
 *	always 30 random words, no exceptions 
 */
@@ -171,6 +163,21 @@ static void CreateOutputString(
 		insertedWords[28], insertedWords[29]);	
 }
 
+extern uint32_t GetCharacterWidth(
+	struct game_state *state,	
+	char glyph)
+{
+	uint32_t result;
+	if(glyph == ' ') {
+		result = SPACE_WIDTH;			
+	} else {	
+		struct loaded_character *character = 
+			GetCharacter(glyph, state->characterBuffer);
+		result = character->x;
+	}	
+	return(result);
+}
+
 static void InitNewLine(
 	struct entity *line,
 	struct rect2 clipRect)
@@ -178,6 +185,8 @@ static void InitNewLine(
 	BITSET(line->state, ENTSTATE_ISCLIPPED);
 	BITSET(line->state, ENTSTATE_DRAWONCE);
 	line->clipRect = clipRect;
+	line->string.backgroundIndex = ENTALIAS_OUTPUTRECT;
+	line->string.backgroundCount = 1;
 }
 
 static void CreateOutputEntities(
@@ -203,7 +212,7 @@ static void CreateOutputEntities(
 	
 	struct entity *newEntity = NewEntity(state, pos, dim, ENTTYPE_OUTPUTSTRING);	
 	InitNewLine(newEntity, outputClipRect);
-	
+		
 	uint32_t totalines = 0;		
 	uint32_t overflow = dim.x;
 	char *startFrom = state->outputStringBuffer;

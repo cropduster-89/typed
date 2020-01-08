@@ -1,14 +1,3 @@
-static void RedrawOutput(
-	struct game_state *state)
-{
-	BITCLEAR(state->entities[ENTALIAS_OUTPUTRECT].state, ENTSTATE_WASDRAWN);
-	for(int32_t i = ENTALIAS_DYNAMICSTART; i < state->entityCount; ++i) {
-		if(state->entities[i].type == ENTTYPE_OUTPUTSTRING) {
-			BITCLEAR(state->entities[i].state, ENTSTATE_WASDRAWN);
-		}
-	}
-}
-
 static void ResetTimerRects(
 	struct game_state *state)
 {
@@ -82,6 +71,8 @@ static void NewScore(
 		positionOffset = 30.0f * (newPosition - 1);
 	}
 	struct entity *newScore = NewEntity(state, scorePos, scoreDim, ENTTYPE_SCORELABEL);
+	newScore->string.backgroundIndex = ENTALIAS_SCOREBOARDBACK;
+	newScore->string.backgroundCount = ENTALIAS_SCORELINE6 - ENTALIAS_SCOREBOARDBACK;
 	struct entity *backBox = GetEntityByAlias(state, ENTALIAS_SCOREBOARDBACK);
 	newScore->clipRect = MakeClipRect(
 		backBox->pos.x, backBox->pos.y,
@@ -253,6 +244,14 @@ static void PrepWpmString(
 	CreateLabel(current, buffer, CHARSTATE_UI);
 }
 
+static bool DrawOutput(
+	struct game_state *state,
+	struct entity *current)
+{
+	return(current->string.position < state->atLine - 1 || 
+	       current->string.position > state->atLine + 5);
+}
+
 static void ProcessEntities(
 	struct game_state *state)
 {
@@ -261,11 +260,13 @@ static void ProcessEntities(
 		switch(current->type) {
 		case ENTTYPE_SCORELABEL:
 		case ENTTYPE_LABELSTRING:
-		case ENTTYPE_OUTPUTSTRING: {
+		case ENTTYPE_INPUTSTRING: {
 			DrawString(state, current);
 			break;
-		} case ENTTYPE_INPUTSTRING: {
-			
+		} case ENTTYPE_OUTPUTSTRING: {
+			if(DrawOutput(state, current)) {
+				continue;
+			}
 			DrawString(state, current);
 			break;
 		} case ENTTYPE_UPDATESTRING: {
@@ -306,7 +307,7 @@ static void ProcessEntities(
 	}
 }
 
-static uint32_t GetWpm(
+extern uint32_t GetWpm(
 	struct game_timer *timer,
 	uint32_t correctWords)
 {
@@ -315,7 +316,7 @@ static uint32_t GetWpm(
 	return(result);
 }
 
-static float GetAcc(
+extern float GetAcc(
 	struct game_state *state)
 {
 	struct game_score *score = &state->score;
@@ -410,7 +411,7 @@ static void EndGame(
 	BITCLEAR(GetEntityByAlias(state, ENTALIAS_WPMSCORE)->state, ENTSTATE_WASDRAWN);
 	BITCLEAR(GetEntityByAlias(state, ENTALIAS_ACCSCORE)->state, ENTSTATE_WASDRAWN);
 	BITCLEAR(GetEntityByAlias(state, ENTALIAS_FUNSCORE)->state, ENTSTATE_WASDRAWN);
-	RedrawOutput(state);
+	RedrawAll(state);
 	NewScore(state);
 }
 
@@ -445,7 +446,7 @@ extern void GameLoop(
 			if(state->input.inputCharacter != '\0') {
 				CompareInput(state, GetEntityByAlias(state, ENTALIAS_INPUTSTRING));
 				ComputeCorrectWords(state, GetEntityByAlias(state, ENTALIAS_INPUTSTRING));
-				RedrawOutput(state);
+				RedrawAll(state);
 			}
 			UpdateWPM(state);
 			UpdateAcc(state);

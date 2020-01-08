@@ -11,28 +11,40 @@
        |___/|_|               
 ********************************************************************************/
 
+/*
+*	Entity types, strings first,
+*	rects second
+*/
 enum entity_type {
 	ENTTYPE_NULL,	
 	
-	ENTTYPE_BANNERRECT,
-	ENTTYPE_OUTPUTCLIPRECT,
 	ENTTYPE_UPDATESTRING,
 	ENTTYPE_LABELSTRING,
 	ENTTYPE_WPMSTRING,
 	ENTTYPE_ACCSTRING,
 	ENTTYPE_INPUTSTRING,
 	ENTTYPE_OUTPUTSTRING,
+	ENTTYPE_SCORELABEL,
 	ENTTYPE_CURSORRECT,
 	ENTTYPE_GENERICRECT,
 	ENTTYPE_PROGRESSRECT,
-	ENTTYPE_SCORELABEL,
+	ENTTYPE_BANNERRECT,
+	ENTTYPE_OUTPUTCLIPRECT,	
+	
+	ENTTYPE_COUNT
 };
+
+#define STRING_START ENTTYPE_UPDATESTRING
+#define RECT_START ENTTYPE_CURSORRECT
 
 /*
 *	All entities that are created at startup
 *	have a hardcoded index alias, all those
 *	that are created dynamincally start
-* 	from ENTALIAS_DYNAMICSTART
+* 	from ENTALIAS_DYNAMICSTART.
+*
+*	TODO create entities by index so 
+*	creation order stops beng important
 */
 enum entity_alias {
 	ENTALIAS_BACKRECT,
@@ -110,6 +122,8 @@ struct entity_string {
 	uint32_t length;
 	uint32_t lengthInPixels;
 	int32_t position;
+	int32_t backgroundIndex;
+	int32_t backgroundCount;
 };
 
 struct entity_rect {
@@ -193,6 +207,6 @@ struct entity_event {
 };
 
 struct game_state;
-struct entity_event *NewEvent(struct game_state *, int32_t, enum event_types);
+static struct entity_event *NewEvent(struct game_state *, int32_t, enum event_types);
 
 #endif

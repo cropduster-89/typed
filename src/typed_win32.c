@@ -47,6 +47,7 @@
 #include"typed_maths.h"
 #include"typed_render.h"
 #include"typed_assets.h"
+#include"typed_string.h"
 #include"typed_entity.h"
 #include"typed_input.h"
 #include"typed_assets.h"
@@ -471,4 +472,5 @@ int WINAPI wWinMain(
 		
 		lastCounter = win32_GetWallClock();
 	}
+	return(0);
 }

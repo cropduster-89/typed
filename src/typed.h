@@ -13,7 +13,7 @@
 
 #define MAX_ENTITIES 128
 #define MAX_EVENTS 24
-#define MAX_RENDERJOBS 1028
+#define MAX_RENDERJOBS 720
 
 struct screen_buffer {
 	int32_t x;
@@ -66,8 +66,6 @@ struct game_state {
 	
 	int32_t atLine;
 	uint32_t outputLines;
-	
-	bool keypress; //put this somehwere decent
 	
 	uint32_t global;
 };

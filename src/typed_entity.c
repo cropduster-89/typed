@@ -1,47 +1,52 @@
-extern void RedrawAll(
-	struct game_state *state)
+static bool IsCorrectEntity(
+	struct game_state *state,
+	int32_t i,
+	enum entity_type type,
+	bool fromLine)
 {
-	for(int32_t i = 0; i < MAX_ENTITIES; ++i) {		
+	return(state->entities[i].type == type && (!fromLine || 
+	       state->entities[i].string.position == state->atLine));
+}
+
+#define GetCurrentOutputLine(state) _GetDynamicEntity(state, ENTTYPE_OUTPUTSTRING, true)
+#define GetProgressRect(state) _GetDynamicEntity(state, ENTTYPE_PROGRESSRECT, false)
+extern struct entity *_GetDynamicEntity(
+	struct game_state *state,
+	enum entity_type type,
+	bool fromLine)
+{
+	struct entity *result = NULL;
+	for(int32_t i = ENTALIAS_DYNAMICSTART; i < MAX_ENTITIES; ++i) {		
+		if(IsCorrectEntity(state, i, type, fromLine)) {
+			result = &state->entities[i];
+			break;
+		}
+	}
+	assert(result);
+	return(result);
+}
+
+extern bool IsString(
+	struct entity *current)
+{
+	return(current->type > ENTTYPE_NULL && current->type < RECT_START);
+}
+
+#define RedrawAllInRange(state, ent) _RedrawEntities(state, \
+	ent.string.backgroundIndex, ent.string.backgroundIndex + ent.string.backgroundCount, false)
+#define RedrawAllDynamic(state) (_RedrawEntities(state, ENTALIAS_DYNAMICSTART, MAX_ENTITIES, false))
+#define RedrawAll(state) (_RedrawEntities(state, 0, MAX_ENTITIES, true))
+extern void _RedrawEntities(
+	struct game_state *state,
+	uint32_t start,
+	uint32_t end,
+	bool clearAll)
+{
+	if(!clearAll && IsString(&state->entities[start]) && state->entities[start].string.backgroundIndex != 0) {
+		RedrawAllInRange(state, state->entities[start]);
+	}
+	for(int32_t i = start; i < end; ++i) {		
 		BITCLEAR(state->entities[i].state, ENTSTATE_WASDRAWN);
-	}
-}
-
-extern struct entity *GetCurrentOutputLine(
-	struct game_state *state)
-{
-	struct entity *result = NULL;
-	for(int32_t i = ENTALIAS_DYNAMICSTART; i < state->entityCount; ++i) {		
-		if(state->entities[i].type == ENTTYPE_OUTPUTSTRING &&
-		   state->entities[i].string.position == state->atLine) {
-			result = &state->entities[i];
-			break;
-		}
-	}
-	assert(result);
-	return(result);
-}
-
-static struct entity *GetProgressRect(
-	struct game_state *state)
-{
-	struct entity *result = NULL;
-	for(int32_t i = ENTALIAS_DYNAMICSTART; i < state->entityCount; ++i) {
-		if(state->entities[i].type == ENTTYPE_PROGRESSRECT) {
-			result = &state->entities[i];
-			break;
-		}
-	}
-	assert(result);
-	return(result);
-}
-
-extern void RedrawAllScores(
-	struct game_state *state)
-{
-	for(int32_t i = ENTALIAS_DYNAMICSTART; i < MAX_ENTITIES; ++i) {
-		if(state->entities[i].type == ENTTYPE_SCORELABEL) {
-			BITCLEAR(state->entities[i].state, ENTSTATE_WASDRAWN);
-		}
 	}
 }
 
@@ -129,21 +134,6 @@ extern struct entity *NewEntity(
 	newEntity->dim = dim;
 	newEntity->type = type;	
 	return(newEntity);
-}
-
-static uint32_t GetCharacterWidth(
-	struct game_state *state,	
-	char glyph)
-{
-	uint32_t result;
-	if(glyph == ' ') {
-		result = SPACE_WIDTH;			
-	} else {	
-		struct loaded_character *character = 
-			GetCharacter(glyph, state->characterBuffer);
-		result = character->x;
-	}	
-	return(result);
 }
 
 extern void ChangeLabelState(
@@ -265,7 +255,7 @@ static void NewMoveEvent(
 	}	
 }
 
-static struct entity_event *NewEvent(
+extern struct entity_event *NewEvent(
 	struct game_state *state,
 	int32_t parentIndex,
 	enum event_types type)
@@ -376,7 +366,6 @@ extern void ProcessEvent(
 		case EVENT_MOVEDOWN:
 		case EVENT_MOVELEFT: {
 			target->pos = AddVec2(target->pos, event->move.increment);
-			BITCLEAR(target->state, ENTSTATE_WASDRAWN);
 			if(event->move.CheckProgress(target->pos, event->move.destination)) {
 				target->pos = event->move.destination;
 				DeleteEvent(state, event->index);
@@ -387,13 +376,8 @@ extern void ProcessEvent(
 					}
 				}
 			}
-			if(target->type == ENTTYPE_OUTPUTSTRING) {
-				BITCLEAR(state->entities[ENTALIAS_OUTPUTRECT].state, ENTSTATE_WASDRAWN);
-			} else if(target->type == ENTTYPE_SCORELABEL) {
-				for(int32_t i = ENTALIAS_SCOREBOARDBACK; i <= ENTALIAS_SCORELINE6; ++i) {
-					BITCLEAR(state->entities[i].state, ENTSTATE_WASDRAWN);
-				}
-				RedrawAllScores(state);
+			if(target->index >= ENTALIAS_DYNAMICSTART) {
+				RedrawAllDynamic(state);
 			}
 			break;
 		} default: break;

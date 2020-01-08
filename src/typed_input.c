@@ -27,7 +27,6 @@ static void TakeInput(
 	struct game_state *state,
 	struct entity *inputControl)
 {	
-	state->keypress = true;
 	state->score.lettersTyped++;
 	if(!InputIsCorrect(state, inputControl)) {
 		state->score.lettersWrong++;
@@ -54,8 +53,8 @@ static void TakeReturn(
 	progressRect->dim.x = 0;
 	progressRect->pos.y -= 25.0f;
 	struct entity_event *event = NewEvent(state, progressRect->index, EVENT_MOVEUP);
-		NewMoveEvent(state, event, FloatToVec2(progressRect->pos.x, progressRect->pos.y + 25.0f),
-			FloatToVec2(0, 6.0f));
+	NewMoveEvent(state, event, FloatToVec2(progressRect->pos.x, progressRect->pos.y + 25.0f),
+		FloatToVec2(0, 6.0f));
 	inputControl->string.length = 0;
 	inputControl->string.lengthInPixels = 0;
 }
