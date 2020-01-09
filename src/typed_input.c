@@ -1,46 +1,13 @@
 /********************************************************************************
  _____                      _ 
-/__   \_   _ _ __   ___  __| |		Input implmentation
+/__   \_   _ _ __   ___  __| |		Input implmentation:
   / /\/ | | | '_ \ / _ \/ _` |
- / /  | |_| | |_) |  __/ (_| |		TODO Move scoring & entity logic out somewhow
- \/    \__, | .__/ \___|\__,_|		double up input state to received->confirmed
-       |___/|_|               		and processed in game code?
+ / /  | |_| | |_) |  __/ (_| |		*Gates input to be sent forward or  
+ \/    \__, | .__/ \___|\__,_|		cleared 
+       |___/|_|               		
+					*More or less done? still need to move 
+					scrolling out
 ********************************************************************************/
-
-static void IncrementProgressRect(
-	struct game_state *state,
-	struct entity *inputControl)
-{
-	struct entity *progressRect = GetProgressRect(state);
-	struct entity *line = GetCurrentOutputLine(state);
-	char character = line->string.contents[inputControl->string.length - 1].glyph;
-	if(character == '\0') {return;}
-	else {
-		progressRect->dim.x += GetCharacterWidth(state, character);
-	} 
-}
-
-extern bool InputIsCorrect(
-	struct game_state *state,
-	struct entity *inputString)
-{
-	struct entity *line = GetCurrentOutputLine(state);	
-	bool result = state->input.inputCharacter == 
-		line->string.contents[inputString->string.length].glyph;
-	return(result);
-}
-
-static void TakeInput(
-	struct game_state *state,
-	struct entity *inputControl)
-{	
-	state->score.lettersTyped++;
-	if(!InputIsCorrect(state, inputControl)) {
-		state->score.lettersWrong++;
-	}
-}
-
-#define RETURN_ISSET(state) BITCHECK(state->input.state, ISTATE_RETURN)
 
 static bool TakingPgUp(
 	struct game_state *state)
@@ -64,7 +31,7 @@ static bool TakingInput(
 	       inputControl->string.lengthInPixels < inputControl->dim.x);
 }
 
-extern bool EndOfLine(
+static bool EndOfLine(
 	struct game_state *state,
 	struct entity *inputString)
 {
@@ -82,22 +49,19 @@ static bool TakingReturn(
 	       EndOfLine(state, inputControl));
 }
 
-static bool ReceiveInput(
+extern void ReceiveInput(
 	struct game_state *state,
 	struct entity *inputString)
 {
-	bool result = false;
-	if(TakingInput(state, inputString)) {
-		result = true;
+	if(TakingInput(state, inputString)) {		
 		if(!BITCHECK(state->global, GLOBAL_GAME)) {
 			NewGame(state);
 		}
-		TakeInput(state, inputString);
-	} 
+		INPUT_SET(state);
+	}
 	
 	if(TakingReturn(state, inputString)) {
 		state->atLine++;
-		//TakeReturn(state, inputString);
 		ScrollOutput(state, true);
 	} else {
 		BITCLEAR(state->input.state, ISTATE_RETURN);
@@ -112,5 +76,4 @@ static bool ReceiveInput(
 	} else if(BITCHECK(state->input.state, ISTATE_TAB)) {
 		RestartGame(state);
 	}
-	return(result);
 }

@@ -1,8 +1,8 @@
 /********************************************************************************
   _____                      _ 
- /__   \_   _ _ __   ___  __| |
+ /__   \_   _ _ __   ___  __| |		*Asset implementation
    / /\/ | | | '_ \ / _ \/ _` |
-  / /  | |_| | |_) |  __/ (_| |
+  / /  | |_| | |_) |  __/ (_| |		*loading bitmaps, accessing bitmaps
   \/    \__, | .__/ \___|\__,_|
         |___/|_|               
 ********************************************************************************/
@@ -27,8 +27,9 @@ extern void LoadFont(
 		uint8_t *monoBmp = stbtt_GetCodepointBitmap(&font, 0,
 			stbtt_ScaleForPixelHeight(&font, 24.0f), i,
 			&result->x, &result->y, &result->alignX, &result->alignY);
+#ifdef DEBUG
 		assert(monoBmp);
-		
+#endif		
 		uint32_t size = result->x * result->y * 
 			BYTES_PER_PIXEL + sizeof(struct loaded_character);
 		((struct character_header*)charBuffer)[i - GLYPH_OFFSET].size = size;
@@ -37,13 +38,14 @@ extern void LoadFont(
 		result->data = charBuffer + sizeTotal;
 		result->stride = result->x * BYTES_PER_PIXEL;
 
-		uint8_t* src = monoBmp;
-		uint8_t* destRow = (uint8_t*)result->data + (result->y - 1) * result->stride;
+		uint8_t *src = monoBmp;
+		uint8_t *destRow = (uint8_t *)result->data + (result->y - 1) * result->stride;
 		for(int32_t y = 0; y < result->y; ++y) {
-			uint32_t* dest = (uint32_t*)destRow;
+			uint32_t* dest = (uint32_t *)destRow;
 			for(int32_t x = 0; x < result->x; ++x) {
 				uint8_t alpha = *src++;
-				*dest++ = ((alpha << 24) |
+				*dest++ = (
+					(alpha << 24) |
 					(alpha << 16) |
 					(alpha << 8) |
 					(alpha << 0));
@@ -59,7 +61,9 @@ extern struct loaded_character *GetCharacter(
 	char input,
 	void *charBuffer)
 {
+#ifdef DEBUG
 	assert(input != '\0');
+#endif
 	struct character_header *header = 
 		((struct character_header *)charBuffer) + (input - GLYPH_OFFSET);	
 	struct loaded_character *character = 

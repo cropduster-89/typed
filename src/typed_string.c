@@ -17,7 +17,7 @@ static char *headerStrings[] = {
 	"If it Crashes you're doing it Wrong",
 };
 
-static char inputString[3][800] = {
+static char templateStrings[3][800] = {
 	{
 		"I don't think he's %s the %s properly. Last time I saw him he was "					//2
 		"%s putting the %s down the %s. That's just %s, %s, and to be frank, %s. There's so many "		//6
@@ -50,7 +50,7 @@ static char inputString[3][800] = {
 /*
 *	always 30 random words, no exceptions 
 */
-enum string_slots inputStringSlots[][30] = {
+enum string_slots templateStringSlots[][30] = {
 	{
 		SLOT_VERBING, SLOT_NOUN, 
 		SLOT_ADJLY, SLOT_NOUN, SLOT_NOUN, SLOT_ADJ, SLOT_ADJ, SLOT_ADJ,
@@ -122,14 +122,14 @@ static void CreateOutputString(
 	struct game_state *state)
 {
 	uint32_t inputIndex = rand() % 3;
-	char *string = &inputString[inputIndex][0];
+	char *string = &templateStrings[inputIndex][0];
 	
 	uint32_t wordCount = RANDOM_WORD_COUNT;
 	char *insertedWords[wordCount];
 	size_t charCount = strlen(string);
 	
 	for(int32_t i = 0; i < wordCount; ++i) {
-		switch(inputStringSlots[inputIndex][i]) {
+		switch(templateStringSlots[inputIndex][i]) {
 		case SLOT_ADJ: {
 			insertedWords[i] = adjectives[rand() % ARRAY_COUNT(adjectives)];
 			break;

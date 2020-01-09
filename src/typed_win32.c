@@ -55,6 +55,7 @@
 #include"typed_entity.h"
 #include"typed_input.h"
 #include"typed_assets.h"
+#include"typed_score.h"
 #include"typed.h"
 
 #include"typed_assets.c"
@@ -64,6 +65,7 @@
 #include"typed_input.c"
 #include"typed_string.c"
 #include"typed_init.c"
+#include"typed_score.c"
 #include"typed.c"
 
 #define DEFAULT_FONT_PATH "C:/Windows/Fonts/consola.ttf"

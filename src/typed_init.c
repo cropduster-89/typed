@@ -1,3 +1,13 @@
+/********************************************************************************
+ _____                      _ 
+/__   \_   _ _ __   ___  __| |		Static Entity Creation:
+  / /\/ | | | '_ \ / _ \/ _` |
+ / /  | |_| | |_) |  __/ (_| |		*errr do sometihng about this,
+ \/    \__, | .__/ \___|\__,_|		keep positons in array and loop through?
+       |___/|_|               		would also have to store strings, colours
+					cliprects and all sorts of other stuff
+********************************************************************************/
+
 static void CreateBanner(
 	struct game_state *state,
 	struct screen_buffer *buffer)

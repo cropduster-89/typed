@@ -1,3 +1,12 @@
+/********************************************************************************
+ _____                      _ 
+/__   \_   _ _ __   ___  __| |		Main implmentation:
+  / /\/ | | | '_ \ / _ \/ _` |
+ / /  | |_| | |_) |  __/ (_| |		*Main game loop plus everything 
+ \/    \__, | .__/ \___|\__,_|		without a proper home
+       |___/|_|               		
+********************************************************************************/
+
 static void ResetTimerRects(
 	struct game_state *state)
 {
@@ -91,53 +100,6 @@ static void ReInitOutput(
 	RePositionOutput(state);
 	state->atLine = 0;
 }
-
-extern void ComputeCorrectWords(
-	struct game_state *state,
-	struct entity *inputString)
-{
-	struct entity *line = GetCurrentOutputLine(state);
-	bool completeWord = true;
-	uint32_t correctWords = 0;	
-	for(int32_t i = 0; i < line->string.length; ++i) {
-		char input = inputString->string.contents[i].glyph;
-		char output = line->string.contents[i].glyph;
-		bool correctLetter = (input == output);
-		if(input == ' ' || line->string.contents[i + 1].glyph == '\0') {
-			if(completeWord) {
-				correctWords++;
-			}
-			completeWord = true;
-		}
-		if(!correctLetter) {
-			completeWord = false;
-		}
-	}
-	state->score.correctWords = correctWords;
-}
-
-extern void CompareInput(
-	struct game_state *state,
-	struct entity *inputString)
-{	
-	char input = state->input.inputCharacter;
-	struct entity *line = GetCurrentOutputLine(state);
-	char output = line->string.contents[inputString->string.length].glyph;
-	bool currentWord = (input == output);
-	struct entity_character *current = &line->string.contents[inputString->string.length];	
-	if(currentWord) {
-		inputString->string.contents[inputString->string.length++].glyph =
-			state->input.inputCharacter;
-		inputString->string.lengthInPixels += GetCharacterWidth(state,
-			state->input.inputCharacter);		
-		IncrementProgressRect(state, inputString);
-		if(current->state == CHARSTATE_NEUTRAL) {
-			current->state = CHARSTATE_RIGHT;
-		}			
-	} else {
-		current->state = CHARSTATE_WRONG;
-	}		
-}	
 
 static void UpdateTime(
 	struct game_timer *timer)
@@ -252,6 +214,20 @@ static bool DrawOutput(
 	       current->string.position > state->atLine + 5);
 }
 
+static void IncrementProgressRect(
+	struct game_state *state,
+	struct entity *current)
+{
+	struct entity *progressRect = GetProgressRect(state);
+	struct entity *line = GetCurrentOutputLine(state);
+	struct entity *inputString = GetEntityByAlias(state, ENTALIAS_INPUTSTRING);
+	char character = line->string.contents[inputString->string.length - 1].glyph;
+	if(character == '\0') {return;}
+	else {
+		progressRect->dim.x += GetCharacterWidth(state, character);
+	} 
+}
+
 static void UpdateProgressRect(
 	struct game_state *state,
 	struct entity *current)
@@ -262,6 +238,8 @@ static void UpdateProgressRect(
 		struct entity_event *event = NewEvent(state, current->index, EVENT_MOVEUP);
 		NewMoveEvent(state, event, FloatToVec2(current->pos.x, current->pos.y + 25.0f),
 			FloatToVec2(0, 6.0f));
+	} else if(INPUT_ISSET(state)) {
+		IncrementProgressRect(state, current);
 	}
 }
 
@@ -272,6 +250,11 @@ static void ProcessInputString(
 	if(RETURN_ISSET(state)) {
 		current->string.length = 0;
 		current->string.lengthInPixels = 0;
+	} else if(INPUT_ISSET(state)) {		
+		current->string.contents[current->string.length++].glyph =
+			state->input.inputCharacter;
+		current->string.lengthInPixels += GetCharacterWidth(state,
+			state->input.inputCharacter);
 	}
 }
 
@@ -336,30 +319,10 @@ static void ProcessEntities(
 	}
 }
 
-extern uint32_t GetWpm(
-	struct game_timer *timer,
-	uint32_t correctWords)
-{
-	float minsElapsed = (float)(timer->currentTime - timer->gameStartTime) / 60000000.0f;
-	uint32_t result = (float)correctWords / minsElapsed;
-	return(result);
-}
-
-extern float GetAcc(
-	struct game_state *state)
-{
-	struct game_score *score = &state->score;
-	float max = score->lettersTyped + score->lettersTypedCarry;
-	float value = max - (score->lettersWrong + score->lettersWrongCarry);
-	float result = (float)value / (float)max * 100.0f;
-	return(result);
-}
-
 static void UpdateAcc(
 	struct game_state *state)
 {
 	struct game_score *score = &state->score;
-	score->accuracey = GetAcc(state);
 	struct entity *accBar = GetEntityByAlias(state, ENTALIAS_ACCBAR);
 	accBar->dim.x = (float)score->accuracey * 2.5f;
 	struct entity *accBarEnd = GetEntityByAlias(state, ENTALIAS_ACCBAREND);
@@ -370,7 +333,6 @@ static void UpdateWPM(
 	struct game_state *state)
 {
 	struct game_score *score = &state->score;
-	score->wpm = GetWpm(&state->timer, score->correctWords + score->correctWordsCarry);
 	struct entity *wpmBar = GetEntityByAlias(state, ENTALIAS_WPMBAR);
 	wpmBar->dim.x = (float)score->wpm > 100.0f ? 100.0f * 2.5f : (float)score->wpm * 2.5f;
 	struct entity *wpmBarEnd = GetEntityByAlias(state, ENTALIAS_WPMBAREND);
@@ -464,18 +426,6 @@ static void InitState(
 	BITSET(state->global, GLOBAL_INIT);
 }
 
-static void ComputeScore(
-	struct game_state *state)
-{
-	struct game_score *score = &state->score;
-	
-	if(RETURN_ISSET(state)) {
-		score->correctWordsCarry += score->correctWords;
-	}
-	UpdateWPM(state);
-	UpdateAcc(state);
-}
-
 static void EndFrame(
 	struct game_state *state)
 {
@@ -495,14 +445,11 @@ extern void GameLoop(
 	if(BITCHECK(state->global, GLOBAL_GAME)) {
 		if(state->timer.currentTime - state->timer.gameStartTime > state->timer.gameLength) {
 			EndGame(state);
-		} else {			
-			if(state->input.inputCharacter != '\0') {
-				CompareInput(state, GetEntityByAlias(state, ENTALIAS_INPUTSTRING));
-				ComputeCorrectWords(state, GetEntityByAlias(state, ENTALIAS_INPUTSTRING));
-				RedrawAll(state);
-			}
-			ComputeScore(state);			
+		} else if(ComputeScore(state)) {			
+			RedrawAll(state);	
 		}
+		UpdateWPM(state);
+		UpdateAcc(state);
 	}
 	ProcessEvent(state);
 	ProcessEntities(state);	

@@ -30,17 +30,6 @@ struct game_timer {
 	uint64_t gameLength;
 };
 
-struct game_score {
-	float accuracey;
-	uint32_t lettersTyped;
-	uint32_t lettersTypedCarry;
-	uint32_t lettersWrong;
-	uint32_t lettersWrongCarry;
-	uint32_t wpm;
-	uint32_t correctWords;
-	uint32_t correctWordsCarry;
-};
-
 enum global_game_state {
 	GLOBAL_INIT = 0,
 	GLOBAL_POST = 8,
@@ -72,8 +61,6 @@ struct game_state {
 
 struct entity *GetCurrentOutputLine(struct game_state *);
 void NewGame(struct game_state *);
-uint32_t GetWpm(struct game_timer *, uint32_t);
-void CompareInput(struct game_state *, struct entity *);
 void RestartGame(struct game_state *);
 
 #endif

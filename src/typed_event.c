@@ -1,10 +1,13 @@
 /********************************************************************************
  _____                      _ 
-/__   \_   _ _ __   ___  __| |		Events implmentation
+/__   \_   _ _ __   ___  __| |		Events implementation
   / /\/ | | | '_ \ / _ \/ _` |
  / /  | |_| | |_) |  __/ (_| |		TODO move entity specifc code out
  \/    \__, | .__/ \___|\__,_|		elsewhere, or bake functions into
        |___/|_|               		the data
+       
+					TODO change creation so events can be made with 
+					a single function call 
 ********************************************************************************/
 
 EVENT_CHECK_PROGRESS(event_ProgressCheckUp)

@@ -43,7 +43,7 @@ enum entity_type {
 *	that are created dynamincally start
 * 	from ENTALIAS_DYNAMICSTART.
 *
-*	TODO create entities by index so 
+*	TODO create static entities by index so 
 *	creation order stops beng important
 */
 enum entity_alias {
@@ -131,6 +131,12 @@ enum entity_state {
 	ENTSTATE_DRAWONCE = 16,	
 	ENTSTATE_WASDRAWN = 24,	
 };
+
+/*
+*	TODO: Strings are much bigger than rects,
+*	move them out to fullon ent/comp 
+*	to save space
+*/
 
 struct entity {
 	enum entity_type type;
