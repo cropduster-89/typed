@@ -54,11 +54,11 @@ extern void _RedrawEntities(
 	uint32_t start,
 	uint32_t end,
 	bool clearAll)
-{
-	if(_RedrawBackground(&state->entities[start], clearAll)) {
-		_RedrawAllInRange(state, state->entities[start]);
-	}
+{	
 	for(int32_t i = start; i < end; ++i) {		
+		if(_RedrawBackground(&state->entities[i], clearAll)) {
+			_RedrawAllInRange(state, state->entities[i]);
+		}
 		BITCLEAR(state->entities[i].state, ENTSTATE_WASDRAWN);
 	}
 }
