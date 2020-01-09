@@ -252,6 +252,29 @@ static bool DrawOutput(
 	       current->string.position > state->atLine + 5);
 }
 
+static void UpdateProgressRect(
+	struct game_state *state,
+	struct entity *current)
+{
+	if(RETURN_ISSET(state)) {
+		current->dim.x = 0;
+		current->pos.y -= 25.0f;
+		struct entity_event *event = NewEvent(state, current->index, EVENT_MOVEUP);
+		NewMoveEvent(state, event, FloatToVec2(current->pos.x, current->pos.y + 25.0f),
+			FloatToVec2(0, 6.0f));
+	}
+}
+
+static void ProcessInputString(
+	struct game_state *state,
+	struct entity *current)
+{
+	if(RETURN_ISSET(state)) {
+		current->string.length = 0;
+		current->string.lengthInPixels = 0;
+	}
+}
+
 static void ProcessEntities(
 	struct game_state *state)
 {
@@ -259,8 +282,11 @@ static void ProcessEntities(
 		struct entity *current = &state->entities[i];
 		switch(current->type) {
 		case ENTTYPE_SCORELABEL:
-		case ENTTYPE_LABELSTRING:
-		case ENTTYPE_INPUTSTRING: {
+		case ENTTYPE_LABELSTRING: {
+			DrawString(state, current);
+			break;
+		} case ENTTYPE_INPUTSTRING: {
+			ProcessInputString(state, current);
 			DrawString(state, current);
 			break;
 		} case ENTTYPE_OUTPUTSTRING: {
@@ -286,8 +312,11 @@ static void ProcessEntities(
 			};
 			PushRect(state, newPos, current->dim, colour);
 			break;
-		} case ENTTYPE_GENERICRECT:
-		case ENTTYPE_PROGRESSRECT: {
+		} case ENTTYPE_GENERICRECT: {
+			DrawRect(state, current);
+			break;
+		} case ENTTYPE_PROGRESSRECT: {
+			UpdateProgressRect(state, current);
 			DrawRect(state, current);
 			break;
 		} case ENTTYPE_WPMSTRING: {
@@ -346,6 +375,14 @@ static void UpdateWPM(
 	wpmBar->dim.x = (float)score->wpm > 100.0f ? 100.0f * 2.5f : (float)score->wpm * 2.5f;
 	struct entity *wpmBarEnd = GetEntityByAlias(state, ENTALIAS_WPMBAREND);
 	wpmBarEnd->pos.x = wpmBar->dim.x + wpmBar->pos.x;
+}
+
+static void ClearInput(
+	struct game_state *state)
+{
+	struct entity *inputControl = GetEntityByAlias(state, ENTALIAS_INPUTSTRING);
+	inputControl->string.length = 0;
+	inputControl->string.lengthInPixels = 0;
 }
 
 extern void RestartGame(
@@ -408,9 +445,6 @@ static void EndGame(
 	struct entity *inputString = GetEntityByAlias(state, ENTALIAS_INPUTSTRING);
 	inputString->string.length = 0;
 	inputString->string.lengthInPixels = 0;
-	BITCLEAR(GetEntityByAlias(state, ENTALIAS_WPMSCORE)->state, ENTSTATE_WASDRAWN);
-	BITCLEAR(GetEntityByAlias(state, ENTALIAS_ACCSCORE)->state, ENTSTATE_WASDRAWN);
-	BITCLEAR(GetEntityByAlias(state, ENTALIAS_FUNSCORE)->state, ENTSTATE_WASDRAWN);
 	RedrawAll(state);
 	NewScore(state);
 }
@@ -428,6 +462,25 @@ static void InitState(
 	CreateLabel(GetEntityByAlias(state, ENTALIAS_HEADER),
 		headerStrings[rand() % ARRAY_COUNT(headerStrings)], CHARSTATE_UI);
 	BITSET(state->global, GLOBAL_INIT);
+}
+
+static void ComputeScore(
+	struct game_state *state)
+{
+	struct game_score *score = &state->score;
+	
+	if(RETURN_ISSET(state)) {
+		score->correctWordsCarry += score->correctWords;
+	}
+	UpdateWPM(state);
+	UpdateAcc(state);
+}
+
+static void EndFrame(
+	struct game_state *state)
+{
+	state->input.inputCharacter = '\0';
+	state->input.state = 0;		
 }
 
 extern void GameLoop(
@@ -448,12 +501,11 @@ extern void GameLoop(
 				ComputeCorrectWords(state, GetEntityByAlias(state, ENTALIAS_INPUTSTRING));
 				RedrawAll(state);
 			}
-			UpdateWPM(state);
-			UpdateAcc(state);
+			ComputeScore(state);			
 		}
 	}
-	state->input.inputCharacter = '\0';
 	ProcessEvent(state);
-	ProcessEntities(state);
+	ProcessEntities(state);	
 	ProcessRenderJobs(state, buffer);
+	EndFrame(state);
 }

@@ -2,7 +2,7 @@
  _____                      _ 
 /__   \_   _ _ __   ___  __| |		Input implmentation
   / /\/ | | | '_ \ / _ \/ _` |
- / /  | |_| | |_) |  __/ (_| |		TODO Move scoring logic out somewhow
+ / /  | |_| | |_) |  __/ (_| |		TODO Move scoring & entity logic out somewhow
  \/    \__, | .__/ \___|\__,_|		double up input state to received->confirmed
        |___/|_|               		and processed in game code?
 ********************************************************************************/
@@ -40,31 +40,7 @@ static void TakeInput(
 	}
 }
 
-extern void ClearInput(
-	struct game_state *state)
-{
-	struct entity *inputControl = GetEntityByAlias(state, ENTALIAS_INPUTSTRING);
-	inputControl->string.length = 0;
-	inputControl->string.lengthInPixels = 0;
-}
-
-static void TakeReturn(
-	struct game_state *state,
-	struct entity *inputControl)
-{
-	struct game_score *score = &state->score;
-	score->correctWordsCarry += score->correctWords;
-	score->lettersWrongCarry += score->lettersWrong;
-	score->lettersTypedCarry += score->lettersTyped;
-	struct entity *progressRect = GetProgressRect(state);
-	progressRect->dim.x = 0;
-	progressRect->pos.y -= 25.0f;
-	struct entity_event *event = NewEvent(state, progressRect->index, EVENT_MOVEUP);
-	NewMoveEvent(state, event, FloatToVec2(progressRect->pos.x, progressRect->pos.y + 25.0f),
-		FloatToVec2(0, 6.0f));
-	inputControl->string.length = 0;
-	inputControl->string.lengthInPixels = 0;
-}
+#define RETURN_ISSET(state) BITCHECK(state->input.state, ISTATE_RETURN)
 
 static bool TakingPgUp(
 	struct game_state *state)
@@ -88,13 +64,22 @@ static bool TakingInput(
 	       inputControl->string.lengthInPixels < inputControl->dim.x);
 }
 
+extern bool EndOfLine(
+	struct game_state *state,
+	struct entity *inputString)
+{
+	struct entity *line = GetCurrentOutputLine(state);		
+	return(inputString->string.length >= line->string.length);
+}
+
 static bool TakingReturn(
 	struct game_state *state,
 	struct entity *inputControl)
 {
 	return(BITCHECK(state->global, GLOBAL_GAME) &&
-	       BITCHECK(state->input.state, ISTATE_RETURN) &&
-	       state->atLine < state->outputLines && FreeEvent(state));
+	       RETURN_ISSET(state) &&
+	       state->atLine < state->outputLines && FreeEvent(state) &&
+	       EndOfLine(state, inputControl));
 }
 
 static bool ReceiveInput(
@@ -108,11 +93,17 @@ static bool ReceiveInput(
 			NewGame(state);
 		}
 		TakeInput(state, inputString);
-	} else if(TakingReturn(state, inputString)) {
+	} 
+	
+	if(TakingReturn(state, inputString)) {
 		state->atLine++;
-		TakeReturn(state, inputString);
+		//TakeReturn(state, inputString);
 		ScrollOutput(state, true);
-	} else if(TakingPgUp(state)) {
+	} else {
+		BITCLEAR(state->input.state, ISTATE_RETURN);
+	}
+	
+	if(TakingPgUp(state)) {
 		state->atLine--;
 		ScrollOutput(state, false);
 	} else if(TakingPgDn(state)) {
@@ -121,6 +112,5 @@ static bool ReceiveInput(
 	} else if(BITCHECK(state->input.state, ISTATE_TAB)) {
 		RestartGame(state);
 	}
-	state->input.state = 0;	
 	return(result);
 }

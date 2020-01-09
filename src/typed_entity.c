@@ -38,14 +38,14 @@ extern bool _IsType(
 	return(current->type > start && current->type < end);
 }
 
-static bool RedrawBackground(
+static bool _RedrawBackground(
 	struct entity *current,
 	bool clearAll)
 {
 	return(!clearAll && IsString(current) && current->string.backgroundIndex != 0);
 }
 
-#define RedrawAllInRange(state, ent) _RedrawEntities(state, \
+#define _RedrawAllInRange(state, ent) _RedrawEntities(state, \
 	ent.string.backgroundIndex, ent.string.backgroundIndex + ent.string.backgroundCount, false)
 #define RedrawAllDynamic(state) (_RedrawEntities(state, ENTALIAS_DYNAMICSTART, MAX_ENTITIES, false))
 #define RedrawAll(state) (_RedrawEntities(state, 0, MAX_ENTITIES, true))
@@ -55,8 +55,8 @@ extern void _RedrawEntities(
 	uint32_t end,
 	bool clearAll)
 {
-	if(RedrawBackground(&state->entities[start], clearAll)) {
-		RedrawAllInRange(state, state->entities[start]);
+	if(_RedrawBackground(&state->entities[start], clearAll)) {
+		_RedrawAllInRange(state, state->entities[start]);
 	}
 	for(int32_t i = start; i < end; ++i) {		
 		BITCLEAR(state->entities[i].state, ENTSTATE_WASDRAWN);
