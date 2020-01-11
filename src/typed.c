@@ -140,9 +140,6 @@ static void PrepAccString(
 	struct game_state *state,
 	struct entity *current)
 {
-	struct entity *accLbl = GetEntityByAlias(state, ENTALIAS_ACCSCORE);
-	BITCLEAR(accLbl->state, ENTSTATE_WASDRAWN);
-	BITCLEAR(state->entities[ENTALIAS_SCOREBACK].state, ENTSTATE_WASDRAWN);
 	char buffer[12];
 	sprintf(buffer, "%.0f%%", state->score.accuracey);
 	CreateLabel(current, buffer, CHARSTATE_UI);
@@ -152,9 +149,6 @@ static void PrepWpmString(
 	struct game_state *state,
 	struct entity *current)
 {
-	struct entity *wpmLbl = GetEntityByAlias(state, ENTALIAS_WPMSCORE);
-	BITCLEAR(wpmLbl->state, ENTSTATE_WASDRAWN);
-	BITCLEAR(state->entities[ENTALIAS_SCOREBACK].state, ENTSTATE_WASDRAWN);
 	char buffer[12];
 	sprintf(buffer, "%d", state->score.wpm);
 	CreateLabel(current, buffer, CHARSTATE_UI);
@@ -283,8 +277,6 @@ static void UpdateAcc(
 	struct game_score *score = &state->score;
 	struct entity *accBar = GetEntityByAlias(state, ENTALIAS_ACCBAR);
 	accBar->dim.x = (float)score->accuracey * 2.5f;
-	struct entity *accBarEnd = GetEntityByAlias(state, ENTALIAS_ACCBAREND);
-	accBarEnd->pos.x = accBar->dim.x + accBar->pos.x;
 }
 
 static void UpdateWPM(
@@ -293,8 +285,6 @@ static void UpdateWPM(
 	struct game_score *score = &state->score;
 	struct entity *wpmBar = GetEntityByAlias(state, ENTALIAS_WPMBAR);
 	wpmBar->dim.x = (float)score->wpm > 100.0f ? 100.0f * 2.5f : (float)score->wpm * 2.5f;
-	struct entity *wpmBarEnd = GetEntityByAlias(state, ENTALIAS_WPMBAREND);
-	wpmBarEnd->pos.x = wpmBar->dim.x + wpmBar->pos.x;
 }
 
 static void ClearInput(
@@ -323,7 +313,6 @@ extern void RestartGame(
 	GetEntityByAlias(state, ENTALIAS_ACCBAR)->dim.x = 0;
 	UpdateWPM(state);
 	UpdateAcc(state);
-	RedrawAll(state);
 	DeleteAllEntitiesOfType(state, ENTTYPE_OUTPUTSTRING);	
 	ClearInput(state);
 	CreateOutputEntities(state, bufferX, bufferY);	
@@ -334,8 +323,19 @@ extern void NewGame(
 {
 	InitTimerRects(state);	
 
+	union vec2 progressBarPos = {
+		.x = bufferX * 0.25f,
+		.y = bufferY - 80.0f - 33.0f
+	};
+	union vec2 ProgressBarDim = {
+		.x = 0,
+		.y = 2.0f
+	};
+	struct entity *bannerRect = NewEntity(state, progressBarPos, ProgressBarDim, ENTTYPE_PROGRESSRECT);
+	bannerRect->rect.colour = COL_GREEN;
+
 	state->timer.gameStartTime = state->timer.currentTime;
-	state->timer.gameLength = SECOND * 5;
+	state->timer.gameLength = SECOND * 60;
 	state->atLine = 0;
 
 	ReInitOutput(state);
@@ -367,8 +367,6 @@ static void InitState(
 	srand(state->timer.baseTime);
 	CreateUi(state, buffer);
 	CreateOutputEntities(state, buffer->x, buffer->y);
-	CreateLabel(GetEntityByAlias(state, ENTALIAS_HEADER),
-		headerStrings[rand() % ARRAY_COUNT(headerStrings)], CHARSTATE_UI);
 	BITSET(state->global, GLOBAL_INIT);
 }
 

@@ -17,8 +17,7 @@ static int32_t ReArrangeOldScores(
 			atPosition++;
 			continue;
 		} else {
-			scores[i]->string.position++;
-			BITCLEAR(scores[i]->state, ENTSTATE_DRAWONCE);
+			scores[i]->string.position++;			
 			struct entity_event *event = NewEvent(state, scores[i]->index, EVENT_MOVEDOWN);
 			CreateScore(scores[i], scores[i]->string.length, scores[i]->string.position, CHARSTATE_NEUTRAL);
 			NewMoveEvent(state, event, FloatToVec2(scores[i]->pos.x, scores[i]->pos.y - 30.0f),
@@ -46,21 +45,27 @@ extern void NewScore(
 		.y = 25.0f
 	};
 	
+	union vec2 scoreBoardBackPos = {
+		.x = 10.0f,
+		.y = bufferY - 265.0f
+	};
+	union vec2 scoreBoardBackDim = {
+		.x = bufferX * 0.25f - 70.0f,
+		.y = bufferY - 80.0f - scoreBoardBackPos.y
+	};	
+	
 	uint32_t newPosition = 1;
 	float positionOffset = 0;
 	uint32_t scoreCount = CountEntitiesByType(state, ENTTYPE_SCORELABEL, CountSingleType);
 	if(scoreCount != 0) {
 		newPosition = ReArrangeOldScores(state, scoreCount);
 		positionOffset = 30.0f * (newPosition - 1);
-	}
+	}	
 	
 	struct entity *newScore = NewEntity(state, scorePos, scoreDim, ENTTYPE_SCORELABEL);
-	newScore->string.backgroundIndex = ENTALIAS_SCOREBOARDBACK;
-	newScore->string.backgroundCount = ENTALIAS_SCORELINE6 - ENTALIAS_SCOREBOARDBACK + 1;
-	struct entity *backBox = GetEntityByAlias(state, ENTALIAS_SCOREBOARDBACK);
 	newScore->clipRect = MakeClipRect(
-		backBox->pos.x, backBox->pos.y,
-		backBox->dim.x, backBox->dim.y);
+		scoreBoardBackPos.x, scoreBoardBackPos.y,
+		scoreBoardBackDim.x, scoreBoardBackDim.y);
 	BITSET(newScore->state, ENTSTATE_ISCLIPPED);
 	CreateScore(newScore, state->score.wpm, newPosition, CHARSTATE_NEUTRAL);
 	

@@ -10,7 +10,7 @@ static bool IsCorrectEntity(
 
 #define GetCurrentOutputLine(state) _GetDynamicEntity(state, \
 	ENTTYPE_OUTPUTSTRING, ENTALIAS_DYNAMICSTART, true)
-#define GetProgressRect(state) _GetDynamicEntity(state, ENTTYPE_PROGRESSRECT, 0, false)
+#define GetProgressRect(state) _GetDynamicEntity(state, ENTTYPE_PROGRESSRECT, ENTALIAS_DYNAMICSTART, false)
 extern struct entity *_GetDynamicEntity(
 	struct game_state *state,
 	enum entity_type type,
@@ -37,7 +37,7 @@ extern bool _IsType(
 	int32_t start,
 	int32_t end)
 {
-	return(current->type > start && current->type < end);
+	return(current->type >= start && current->type < end);
 }
 
 static bool _RedrawBackground(

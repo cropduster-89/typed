@@ -42,6 +42,7 @@
 #include<stdbool.h>
 #include<assert.h>
 #include<string.h>
+#include<xmmintrin.h>
 
 #define STB_TRUETYPE_IMPLEMENTATION
 #include "stb_truetype.h"
@@ -118,7 +119,7 @@ LRESULT CALLBACK WindowProc(
 		break;
 	} case WM_CREATE: {
 		struct game_state *state = (struct game_state *)win32_Allocate(sizeof(struct game_state));
-		state->characterBuffer = win32_Allocate(KILOBYTES(70));
+		state->characterBuffer = win32_Allocate(KILOBYTES(500));
 		state->bmpBuffer = win32_Allocate(KILOBYTES(400));
 		SetClassLongPtrW(window, 0, (ULONG_PTR)state);
 		break;	
