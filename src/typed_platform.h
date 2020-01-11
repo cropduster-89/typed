@@ -12,14 +12,14 @@
 ********************************************************************************/
 
 #define BYTES_PER_PIXEL 4
-#define SPACE_WIDTH 10.0f
+#define SPACE_WIDTH 7.0f
 #define SECOND 1000000ull
 #define INVALID_PATH assert(0)
 
 #define KILOBYTES(value) ((value)*1024LL)
 #define MEGABYTES(value) (KILOBYTES(value)*1024LL)
 
-#define COL_GREEN_DARK FloatToVec4(0.0f, 0.2f, 0.0f, 1.0f)
+#define COL_GREEN_DARK FloatToVec4(0.1f, 0.3, 0.1f, 1.0f)
 #define COL_GREEN FloatToVec4(0.3f, 0.65f, 0.3f, 1.0f)
 #define COL_GREEN_LIGHT FloatToVec4(0.53f, 0.9f, 0.53f, 1.0f)
 #define COL_BLACK FloatToVec4(0.0f, 0.0f, 0.0f, 1.0f)

@@ -55,6 +55,18 @@ extern float ClampColour(
 	return(Clamp(a, 0.0f, 1.0f));
 }
 
+extern union vec4 ClampColourV4(
+	union vec4 a)
+{
+	union vec4 result = {
+		.r = ClampColour(a.r),
+		.g = ClampColour(a.g),
+		.b = ClampColour(a.b),
+		.a = ClampColour(a.a),
+	};
+	return(result);
+}
+
 extern union vec2 FloatToVec2(
 	float x,
 	float y)

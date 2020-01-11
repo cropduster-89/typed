@@ -215,16 +215,11 @@ extern void ProcessEvent(
 			if(event->move.CheckProgress(target->pos, event->move.destination)) {
 				target->pos = event->move.destination;
 				DeleteEvent(state, event->index);
-				if(target->type == ENTTYPE_SCORELABEL) {
-					BITSET(target->state, ENTSTATE_DRAWONCE);
-					if(target->string.position == 7) {
-						DeleteEntityAt(state, target->index);
-					}
+				if(target->type == ENTTYPE_SCORELABEL && target->string.position == 7) {					
+					DeleteEntityAt(state, target->index);
 				}
 			}
-			if(target->index >= ENTALIAS_DYNAMICSTART) {
-				RedrawAllDynamic(state);
-			}
+
 			break;
 		} default: break;
 		}

@@ -32,68 +32,6 @@ static void InitTimerRects(
 	}
 }
 
-static void NewScore(
-	struct game_state *state)
-{
-	union vec2 scoreBasePos = {
-		.x = 20.0f,
-		.y = (float)bufferY - 105.0f
-	};
-
-	union vec2 scorePos = {
-		.x = 20.0f,
-		.y = 100.0f
-	};
-	union vec2 scoreDim = {
-		.x = 150.0f,
-		.y = 25.0f
-	};
-
-	uint32_t scoreCount = CountEntitiesByType(state, ENTTYPE_SCORELABEL);
-	uint32_t newPosition = 1;
-	float positionOffset = 0;
-	if(scoreCount != 0) {
-		struct entity *scores[scoreCount];
-		uint32_t currentCount = 0;
-		for(int32_t i = ENTALIAS_DYNAMICSTART; i < MAX_ENTITIES; ++i) {
-			if(state->entities[i].type == ENTTYPE_SCORELABEL) {
-				scores[currentCount++] = &state->entities[i];
-			}
-		}
-		assert(currentCount == scoreCount);
-		int32_t i = 0;
-		int32_t atPosition = 1;
-		for(; i < scoreCount; ++i) {
-			if(scores[i]->string.length > state->score.wpm) {
-				atPosition++;
-				continue;
-			} else {
-				scores[i]->string.position++;
-				BITCLEAR(scores[i]->state, ENTSTATE_DRAWONCE);
-				struct entity_event *event = NewEvent(state, scores[i]->index, EVENT_MOVEDOWN);
-				CreateScore(scores[i], scores[i]->string.length, scores[i]->string.position, CHARSTATE_NEUTRAL);
-				NewMoveEvent(state, event, FloatToVec2(scores[i]->pos.x, scores[i]->pos.y - 30.0f),
-					FloatToVec2(0, -3.5f));
-			}
-		}
-		newPosition = atPosition;
-		positionOffset = 30.0f * (newPosition - 1);
-	}
-	struct entity *newScore = NewEntity(state, scorePos, scoreDim, ENTTYPE_SCORELABEL);
-	newScore->string.backgroundIndex = ENTALIAS_SCOREBOARDBACK;
-	newScore->string.backgroundCount = ENTALIAS_SCORELINE6 - ENTALIAS_SCOREBOARDBACK + 1;
-	struct entity *backBox = GetEntityByAlias(state, ENTALIAS_SCOREBOARDBACK);
-	newScore->clipRect = MakeClipRect(
-		backBox->pos.x, backBox->pos.y,
-		backBox->dim.x, backBox->dim.y);
-	BITSET(newScore->state, ENTSTATE_ISCLIPPED);
-	CreateScore(newScore, state->score.wpm, newPosition, CHARSTATE_NEUTRAL);
-	struct entity_event *event = NewEvent(state, newScore->index, EVENT_MOVEUP);
-	scoreBasePos.y -= positionOffset;
-	NewMoveEvent(state, event, FloatToVec2(scorePos.x, scoreBasePos.y), FloatToVec2(0, 4.5f));
-}
-
-
 static void ReInitOutput(
 	struct game_state *state)
 {
@@ -105,6 +43,22 @@ static void UpdateTime(
 	struct game_timer *timer)
 {
 	timer->currentTime = (api.GetTime() - timer->baseTime);
+}
+
+
+static void DrawBackRect(
+	struct game_state *state,
+	struct entity *current)
+{
+	if(BITCHECK(current->state, ENTSTATE_DRAWONCE) &&
+	   BITCHECK(current->state, ENTSTATE_WASDRAWN)) {
+		return;
+	} else {
+		PushBackRect(state, current->pos, current->dim, current->rect.colour);
+		if(BITCHECK(current->state, ENTSTATE_DRAWONCE)) {
+			BITSET(current->state, ENTSTATE_WASDRAWN);
+		}
+	}
 }
 
 static void DrawRect(
@@ -119,7 +73,7 @@ static void DrawRect(
 		if(BITCHECK(current->state, ENTSTATE_INVISIBLE)) {
 			colour = FloatToVec4(0.0f, 0.0f, 0.0f, 1.0f);
 		}
-		PushRect(state, current->pos, current->dim, colour);
+		PushRect(state, current->rect.assetIndex, current->pos, current->dim, colour);
 		if(BITCHECK(current->state, ENTSTATE_DRAWONCE)) {
 			BITSET(current->state, ENTSTATE_WASDRAWN);
 		}
@@ -186,9 +140,6 @@ static void PrepAccString(
 	struct game_state *state,
 	struct entity *current)
 {
-	struct entity *accLbl = GetEntityByAlias(state, ENTALIAS_ACCSCORE);
-	BITCLEAR(accLbl->state, ENTSTATE_WASDRAWN);
-	BITCLEAR(state->entities[ENTALIAS_SCOREBACK].state, ENTSTATE_WASDRAWN);
 	char buffer[12];
 	sprintf(buffer, "%.0f%%", state->score.accuracey);
 	CreateLabel(current, buffer, CHARSTATE_UI);
@@ -198,9 +149,6 @@ static void PrepWpmString(
 	struct game_state *state,
 	struct entity *current)
 {
-	struct entity *wpmLbl = GetEntityByAlias(state, ENTALIAS_WPMSCORE);
-	BITCLEAR(wpmLbl->state, ENTSTATE_WASDRAWN);
-	BITCLEAR(state->entities[ENTALIAS_SCOREBACK].state, ENTSTATE_WASDRAWN);
 	char buffer[12];
 	sprintf(buffer, "%d", state->score.wpm);
 	CreateLabel(current, buffer, CHARSTATE_UI);
@@ -293,14 +241,15 @@ static void ProcessEntities(
 				.x = current->pos.x + inputControl->string.lengthInPixels,
 				.y = current->pos.y
 			};
-			PushRect(state, newPos, current->dim, colour);
+			PushRect(state, current->rect.assetIndex, newPos, current->dim, colour);
 			break;
 		} case ENTTYPE_GENERICRECT: {
+			if(current->dim.x < 1) break;
 			DrawRect(state, current);
 			break;
 		} case ENTTYPE_PROGRESSRECT: {
-			UpdateProgressRect(state, current);
-			DrawRect(state, current);
+			UpdateProgressRect(state, current);			
+			DrawBackRect(state, current);
 			break;
 		} case ENTTYPE_WPMSTRING: {
 			if(ACTIVE_GAME(state)) {
@@ -314,6 +263,9 @@ static void ProcessEntities(
 			}
 			DrawString(state, current);
 			break;
+		} case ENTTYPE_BACKRECT: {
+			DrawBackRect(state, current);
+			break;
 		} default: break;
 		}
 	}
@@ -325,8 +277,6 @@ static void UpdateAcc(
 	struct game_score *score = &state->score;
 	struct entity *accBar = GetEntityByAlias(state, ENTALIAS_ACCBAR);
 	accBar->dim.x = (float)score->accuracey * 2.5f;
-	struct entity *accBarEnd = GetEntityByAlias(state, ENTALIAS_ACCBAREND);
-	accBarEnd->pos.x = accBar->dim.x + accBar->pos.x;
 }
 
 static void UpdateWPM(
@@ -335,8 +285,6 @@ static void UpdateWPM(
 	struct game_score *score = &state->score;
 	struct entity *wpmBar = GetEntityByAlias(state, ENTALIAS_WPMBAR);
 	wpmBar->dim.x = (float)score->wpm > 100.0f ? 100.0f * 2.5f : (float)score->wpm * 2.5f;
-	struct entity *wpmBarEnd = GetEntityByAlias(state, ENTALIAS_WPMBAREND);
-	wpmBarEnd->pos.x = wpmBar->dim.x + wpmBar->pos.x;
 }
 
 static void ClearInput(
@@ -365,10 +313,7 @@ extern void RestartGame(
 	GetEntityByAlias(state, ENTALIAS_ACCBAR)->dim.x = 0;
 	UpdateWPM(state);
 	UpdateAcc(state);
-	RedrawAll(state);
-	DeleteAllEntitiesOfType(state, ENTTYPE_OUTPUTSTRING);
-	DeleteAllEntitiesOfType(state, ENTTYPE_PROGRESSRECT);
-	
+	DeleteAllEntitiesOfType(state, ENTTYPE_OUTPUTSTRING);	
 	ClearInput(state);
 	CreateOutputEntities(state, bufferX, bufferY);	
 }
@@ -376,8 +321,8 @@ extern void RestartGame(
 extern void NewGame(
 	struct game_state *state)
 {
-	InitTimerRects(state);
-	
+	InitTimerRects(state);	
+
 	union vec2 progressBarPos = {
 		.x = bufferX * 0.25f,
 		.y = bufferY - 80.0f - 33.0f
@@ -407,6 +352,7 @@ static void EndGame(
 	struct entity *inputString = GetEntityByAlias(state, ENTALIAS_INPUTSTRING);
 	inputString->string.length = 0;
 	inputString->string.lengthInPixels = 0;
+	ResetTimerRects(state);
 	RedrawAll(state);
 	NewScore(state);
 }
@@ -421,8 +367,6 @@ static void InitState(
 	srand(state->timer.baseTime);
 	CreateUi(state, buffer);
 	CreateOutputEntities(state, buffer->x, buffer->y);
-	CreateLabel(GetEntityByAlias(state, ENTALIAS_HEADER),
-		headerStrings[rand() % ARRAY_COUNT(headerStrings)], CHARSTATE_UI);
 	BITSET(state->global, GLOBAL_INIT);
 }
 

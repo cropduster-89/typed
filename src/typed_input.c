@@ -24,7 +24,7 @@ static bool TakingInput(
 	struct game_state *state,
 	struct entity *inputControl)
 {
-	return(state->input.inputCharacter != '\0' &&
+	return(state->input.inputCharacter != '\0' && !BITCHECK(state->global, GLOBAL_POST) &&
 	       inputControl->string.lengthInPixels < inputControl->dim.x);
 }
 

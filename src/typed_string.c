@@ -224,7 +224,7 @@ extern uint32_t GetCharacterWidth(
 	} else {	
 		struct loaded_character *character = 
 			GetCharacter(glyph, state->characterBuffer);
-		result = character->x;
+		result = character->x * SCALE;
 	}	
 	return(result);
 }
@@ -234,9 +234,7 @@ static void InitNewLine(
 	struct rect2 clipRect)
 {
 	BITSET(line->state, ENTSTATE_ISCLIPPED);
-	BITSET(line->state, ENTSTATE_DRAWONCE);
 	line->clipRect = clipRect;
-	line->string.backgroundIndex = ENTALIAS_OUTPUTRECT;
 	line->string.backgroundCount = 1;
 }
 
@@ -265,7 +263,7 @@ static void CreateOutputEntities(
 	InitNewLine(newEntity, outputClipRect);
 		
 	uint32_t totalines = 0;		
-	uint32_t overflow = dim.x;
+	uint32_t overflow = dim.x - 30.0f;
 	char *startFrom = state->outputStringBuffer;
 	char *current = startFrom;
 	char *lastSpace = startFrom;

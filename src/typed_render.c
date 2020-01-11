@@ -16,7 +16,7 @@ static void PushRenderJob(
 	state->renderJobs[state->renderJobCount++] = job;
 }
 
-extern void PushRect(
+extern void PushBackRect(
 	struct game_state *state,
 	union vec2 pos,
 	union vec2 dim,
@@ -24,7 +24,23 @@ extern void PushRect(
 {
 	union render_job job = {};
 	job.rect.pos = pos;
+	job.rect.dim = dim;	
+	job.rect.colour = colour;
+	job.rect.type = RJOB_BACKRECT;
+	PushRenderJob(state, job);
+} 
+
+extern void PushRect(
+	struct game_state *state,
+	uint32_t assetIndex,
+	union vec2 pos,
+	union vec2 dim,
+	union vec4 colour)
+{
+	union render_job job = {};
+	job.rect.pos = pos;
 	job.rect.dim = dim;
+	job.rect.asset = GetBmp(assetIndex, state->bmpBuffer);
 	job.rect.colour = colour;
 	job.rect.type = RJOB_RECT;
 	PushRenderJob(state, job);
@@ -93,7 +109,7 @@ extern void PushString(
 		}
 		struct loaded_character *character = 
 			GetCharacter(glyph, state->characterBuffer);
-		int32_t alignedY = pos.y - character->y - character->alignY;	
+		int32_t alignedY = pos.y - character->y * SCALE - character->alignY * SCALE;	
 		union vec4 colour = GetCharacterColour(&entity->string.contents[i]);
 		
 		union vec2 adjustedPos = {
@@ -101,7 +117,7 @@ extern void PushString(
 			.y = alignedY,
 		};
 		PushLetter(state, character, colour, adjustedPos, clipRect);
-		pos.x += character->x; 
+		pos.x += (GetCharacterWidth(state, glyph) + 1.0f); 
 	}
 }
 
@@ -129,15 +145,18 @@ static uint32_t UnpackColour(
 
 static void WriteBmpToBuffer(
 	struct screen_buffer *buffer,
-	struct loaded_character *character,
+	struct loaded_bmp *character,
 	union vec2 start,
 	union vec4 colour,
-	struct rect2 clipRect)
+	struct rect2 clipRect,
+	float scale)
 {
-	union vec2 xAxis = FloatToVec2(character->x * 0.95f, 0); 
-	union vec2 yAxis = FloatToVec2(0, character->y * 0.95f); 
+	union vec2 xAxis = FloatToVec2(character->x * scale, 0); 
+	union vec2 yAxis = FloatToVec2(0, character->y * scale); 
 	float xLengthIverted = 1.0f / LengthSqVec2(xAxis);
 	float yLengthIverted = 1.0f / LengthSqVec2(yAxis);
+	union vec2 nXAxis = MultVec2(xAxis, xLengthIverted);
+	union vec2 nYAxis = MultVec2(yAxis, yLengthIverted);
 	
 	int32_t xMaxInit = clipRect.max.x;
 	int32_t yMaxInit = clipRect.max.y;
@@ -182,14 +201,11 @@ static void WriteBmpToBuffer(
 			union vec2 pixel = FloatToVec2(x, y);
 			union vec2 pixelOffset = SubVec2(pixel, start);	
 			
-			float edge0 = InnerVec2(pixelOffset, NegVec2(Perp(xAxis)));
-			float edge1 = InnerVec2(SubVec2(pixelOffset, xAxis), NegVec2(Perp(yAxis)));
-			float edge2 = InnerVec2(SubVec2(SubVec2(pixelOffset, xAxis), yAxis), Perp(xAxis));
-			float edge3 = InnerVec2(SubVec2(pixelOffset, yAxis),Perp(yAxis));
-			if(edge0 > 0 || edge1 > 0 || edge2 > 0 || edge3 > 0) {dest++; continue;}			
+			float u = InnerVec2(pixelOffset, nXAxis);
+			float v = InnerVec2(pixelOffset, nYAxis);
+			
+			if(u < 0 || v < 0 || u > 1 || v > 1) {dest++; continue;}			
 	
-			float u = xLengthIverted * InnerVec2(pixelOffset, xAxis) * 1.1f;
-			float v = yLengthIverted * InnerVec2(pixelOffset, yAxis) * 1.1f;
 			float tX = ((u * (float)(character->x - 2)));
 			float tY = ((v * (float)(character->y - 2)));
 			int32_t nX = (int32_t)tX;
@@ -197,8 +213,8 @@ static void WriteBmpToBuffer(
 			float fX = tX - (float)nX;
 			float fY = tY - (float)nY;			
 			
-			assert((nX >= 0) && (nX < character->x));
-			assert((nY >= 0) && (nY < character->y));
+			assert((nX >= 0) && (nX <= character->x));
+			assert((nY >= 0) && (nY <= character->y));
 			
 			uint8_t *src = ((uint8_t *)character->data + nY * 
 				character->stride + nX * BYTES_PER_PIXEL);
@@ -291,6 +307,45 @@ static void WriteSolidColourToBuffer(
 	}
 }
 
+extern void DrawInternalBmp(
+	uint32_t *data,
+	union vec2 dim,
+	union vec4 colour)
+{
+	int32_t maxX = dim.x;
+	int32_t maxY = dim.y;
+	colour = ClampColourV4(MultVec4(colour, 3.5f));
+	uint32_t uColour = UnpackColour(colour);
+	uint8_t *row = (uint8_t *)data;
+	uint32_t line = dim.y / 3 - 4;
+	for(int32_t y = 0; y < maxY; ++y) {
+		uint32_t *dest = (uint32_t *)row;
+		for(int32_t x = 0; x < maxX; ++x) {
+			*dest = uColour;			
+			uint8_t alpha = (uint8_t)uColour;	
+			
+			if((dim.x > 5 && dim.x > 5) && (y < 2 || x < 2 || y > maxY - 3 || x > maxX - 3)) {
+				alpha /= 1.75f;
+			} else if((dim.x > 5 && dim.y > 5) && (y < 3 || x < 3 || y > maxY - 4 || x > maxX - 4)) {
+				alpha /= 1.5f;
+			}
+			
+			if(dim.y > 20 && dim.x > 5 && x > 5 && x < maxX - 6) {
+				if(y >= line && y <= line + 3) {
+					alpha /= 1.25f;
+				}
+			}
+			
+			*dest++ = (
+					(alpha << 24) |
+					(alpha << 16) |
+					(alpha << 8) |
+					(alpha << 0));
+		}
+		row += maxX * BYTES_PER_PIXEL;
+	}
+}
+
 extern void ProcessRenderJobs(
 	struct game_state *state,
 	struct screen_buffer *b)
@@ -299,12 +354,16 @@ extern void ProcessRenderJobs(
 		union render_job *job = &state->renderJobs[i];
 		switch(job->glyph.type) {
 		case RJOB_LETTER: {			
-			WriteBmpToBuffer(b, job->glyph.asset, job->glyph.pos, 
-				job->glyph.colour, job->glyph.clipRect);
+			WriteBmpToBuffer(b, (struct loaded_bmp *)job->glyph.asset, job->glyph.pos, 
+				job->glyph.colour, job->glyph.clipRect, SCALE);
 			break;
-		} case RJOB_RECT: {			
+		} case RJOB_BACKRECT: {			
 			WriteSolidColourToBuffer(b, job->rect.dim.x, job->rect.dim.y, job->rect.pos.x, 
 				job->rect.pos.y, job->rect.colour);
+			break;
+		} case RJOB_RECT: {			
+			WriteBmpToBuffer(b, job->rect.asset, job->rect.pos, 
+				job->rect.colour, FloatToRect2(0, 0, bufferX, bufferY), 1);
 			break;
 		} default: break;	
 		}

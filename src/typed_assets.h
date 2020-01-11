@@ -3,16 +3,25 @@
 #define TYPED_ASSETS_H
 
 struct loaded_character {
+	void *data;
+	
 	int32_t x;
-	int32_t y;
+	int32_t y;	
+	int32_t stride;
+	
 	int32_t alignX;
 	int32_t alignY;
-	int32_t stride;
-
-	void* data;
 };
 
-struct character_header {
+struct loaded_bmp {
+	void *data;
+	
+	int32_t x;
+	int32_t y;	
+	int32_t stride;
+};
+
+struct asset_header {
 	size_t size;
 	uint32_t startIndex;
 };

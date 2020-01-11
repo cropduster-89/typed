@@ -11,7 +11,7 @@
        |___/|_|               
 ********************************************************************************/
 
-#define MAX_STRINGLENGTH 64
+#define MAX_STRINGLENGTH 84
 
 /*
 *	Entity types, strings first,
@@ -28,10 +28,12 @@ enum entity_type {
 	ENTTYPE_OUTPUTSTRING,
 	ENTTYPE_SCORELABEL,
 	ENTTYPE_CURSORRECT,
-	ENTTYPE_GENERICRECT,
-	ENTTYPE_PROGRESSRECT,
+	ENTTYPE_GENERICRECT,	
 	ENTTYPE_BANNERRECT,
+	ENTTYPE_PROGRESSRECT,
 	ENTTYPE_OUTPUTCLIPRECT,	
+	ENTTYPE_BACKRECT,	
+	
 	
 	ENTTYPE_COUNT
 };
@@ -51,8 +53,6 @@ enum entity_type {
 enum entity_alias {
 	ENTALIAS_BACKRECT,
 	ENTALIAS_BANNERRECT,
-	ENTALIAS_BANNERDECOR,
-	ENTALIAS_BANNERNUB,
 	ENTALIAS_BANNERUPDATE,
 	ENTALIAS_INPUTRECTBOTTOM,
 	ENTALIAS_INPUTRECTTOP,	
@@ -61,7 +61,6 @@ enum entity_alias {
 	ENTALIAS_INPUTCURSOR,
 	ENTALIAS_TOPBAR,
 	ENTALIAS_HEADER,
-	ENTALIAS_OUTPUTRECT,
 	ENTALIAS_TIMER1,
 	ENTALIAS_TIMER2,
 	ENTALIAS_TIMER3,
@@ -69,7 +68,6 @@ enum entity_alias {
 	ENTALIAS_TIMER5,
 	ENTALIAS_GEN1,
 	ENTALIAS_GEN2,
-	ENTALIAS_SCOREBOARDBACK,	
 	ENTALIAS_SCORELINE1,	
 	ENTALIAS_SCORELINE2,	
 	ENTALIAS_SCORELINE3,	
@@ -90,7 +88,6 @@ enum entity_alias {
 	ENTALIAS_ACCLBL,
 	ENTALIAS_FUNRECT,
 	ENTALIAS_FUNLBL,
-	ENTALIAS_SCOREBACK,
 	ENTALIAS_WPMSCORE,
 	ENTALIAS_ACCSCORE,
 	ENTALIAS_FUNSCORE,
@@ -98,12 +95,14 @@ enum entity_alias {
 	ENTALIAS_ACCBARBASE,
 	ENTALIAS_FUNBARBASE,
 	ENTALIAS_WPMBAR,
-	ENTALIAS_WPMBAREND,
 	ENTALIAS_ACCBAR,
-	ENTALIAS_ACCBAREND,
 	
 	ENTALIAS_DYNAMICSTART,
 };
+
+#define ENTITY_COUNT_CONDITION(name) bool name(struct game_state *state, enum entity_type type, int32_t i)
+typedef ENTITY_COUNT_CONDITION(entity_count_condition);
+
 
 struct entity_character {
 	char glyph;
@@ -125,6 +124,7 @@ struct entity_string {
 struct entity_rect {
 	union vec4 colour;
 	uint32_t parentIndex;
+	uint32_t assetIndex;
 };
 
 enum entity_state {
@@ -152,5 +152,7 @@ struct entity {
 		struct entity_rect rect;
 	};
 };
+
+int32_t GetNextRect(struct game_state *, int32_t);
 
 #endif
