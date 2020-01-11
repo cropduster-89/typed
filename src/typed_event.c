@@ -230,24 +230,3 @@ extern void ProcessEvent(
 		}
 	}
 }
-
-static void ScrollOutput(
-	struct game_state *state,
-	bool isDown)
-{
-	for(int32_t i = ENTALIAS_DYNAMICSTART; i < MAX_ENTITIES; ++i) {
-		struct entity *current = &state->entities[i];
-		if(current->type == ENTTYPE_OUTPUTSTRING) {			
-			if(isDown) {
-				struct entity_event *event = NewEvent(state, current->index, EVENT_MOVEUP);
-				NewMoveEvent(state, event, FloatToVec2(current->pos.x, current->pos.y + 25.0f),
-					FloatToVec2(0, 6.0f));
-					
-			} else {
-				struct entity_event *event = NewEvent(state, current->index, EVENT_MOVEDOWN);
-				NewMoveEvent(state, event, FloatToVec2(current->pos.x, current->pos.y - 25.0f),
-					FloatToVec2(0, -6.0f));
-			}			
-		}
-	}
-}

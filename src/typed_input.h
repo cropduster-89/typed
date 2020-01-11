@@ -31,12 +31,17 @@
 #define INPUT_SET(state) BITSET(state->input.state, ISTATE_INPUT)
 #define INPUT_CLEAR(state) BITCLEAR(state->input.state, ISTATE_INPUT)
 
+#define INPUT_WRONG_ISSET(state) BITCHECK(state->input.state, ISTATE_INPUT_WRONG)
+#define INPUT_WRONG_SET(state) BITSET(state->input.state, ISTATE_INPUT_WRONG)
+#define INPUT_WRONG_CLEAR(state) BITCLEAR(state->input.state, ISTATE_INPUT_WRONG)
+
 enum input_state {
 	ISTATE_RETURN = 0,
 	ISTATE_PGUP = 8,
 	ISTATE_PGDOWN = 16,
 	ISTATE_TAB = 24,
-	ISTATE_INPUT = 32
+	ISTATE_INPUT = 32,
+	ISTATE_INPUT_WRONG = 40
 };
 
 union button_state {

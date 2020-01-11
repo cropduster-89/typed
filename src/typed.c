@@ -81,7 +81,7 @@ static void NewScore(
 	}
 	struct entity *newScore = NewEntity(state, scorePos, scoreDim, ENTTYPE_SCORELABEL);
 	newScore->string.backgroundIndex = ENTALIAS_SCOREBOARDBACK;
-	newScore->string.backgroundCount = ENTALIAS_SCORELINE6 - ENTALIAS_SCOREBOARDBACK;
+	newScore->string.backgroundCount = ENTALIAS_SCORELINE6 - ENTALIAS_SCOREBOARDBACK + 1;
 	struct entity *backBox = GetEntityByAlias(state, ENTALIAS_SCOREBOARDBACK);
 	newScore->clipRect = MakeClipRect(
 		backBox->pos.x, backBox->pos.y,
@@ -147,7 +147,7 @@ static void ProcessUpdateString(
 	struct game_state *state,
 	struct entity *current)
 {
-	if(BITCHECK(state->global, GLOBAL_GAME) && !HasActiveEvent(state, current->index)) {
+	if(ACTIVE_GAME(state) && !HasActiveEvent(state, current->index)) {
 		switch(current->string.position) {
 		case UPHASE_IDLE: {
 			struct entity_event *event = NewEvent(state, current->index, EVENT_MOVELEFT);
@@ -273,10 +273,10 @@ static void ProcessEntities(
 			DrawString(state, current);
 			break;
 		} case ENTTYPE_OUTPUTSTRING: {
-			if(DrawOutput(state, current)) {
-				continue;
-			}
-			DrawString(state, current);
+			ProcessOutputString(state, current);
+			if(!DrawOutput(state, current)) {
+				DrawString(state, current);
+			}			
 			break;
 		} case ENTTYPE_UPDATESTRING: {
 			ProcessUpdateString(state, current);
@@ -303,13 +303,13 @@ static void ProcessEntities(
 			DrawRect(state, current);
 			break;
 		} case ENTTYPE_WPMSTRING: {
-			if(BITCHECK(state->global, GLOBAL_GAME)) {
+			if(ACTIVE_GAME(state)) {
 				PrepWpmString(state, current);
 			}
 			DrawString(state, current);
 			break;
 		} case ENTTYPE_ACCSTRING: {
-			if(BITCHECK(state->global, GLOBAL_GAME)) {
+			if(ACTIVE_GAME(state)) {
 				PrepAccString(state, current);
 			}
 			DrawString(state, current);
@@ -426,6 +426,13 @@ static void InitState(
 	BITSET(state->global, GLOBAL_INIT);
 }
 
+static bool TimeIsUp(
+	struct game_timer *timer)
+{
+	return(timer->currentTime - timer->gameStartTime > 
+	       timer->gameLength);
+}
+
 static void EndFrame(
 	struct game_state *state)
 {
@@ -442,17 +449,17 @@ extern void GameLoop(
 	}
 	UpdateTime(&state->timer);
 	ReceiveInput(state, GetEntityByAlias(state, ENTALIAS_INPUTSTRING));	
-	if(BITCHECK(state->global, GLOBAL_GAME)) {
-		if(state->timer.currentTime - state->timer.gameStartTime > state->timer.gameLength) {
+	if(ACTIVE_GAME(state)) {
+		if(TimeIsUp(&state->timer)) {
 			EndGame(state);
 		} else if(ComputeScore(state)) {			
 			RedrawAll(state);	
 		}
 		UpdateWPM(state);
 		UpdateAcc(state);
-	}
-	ProcessEvent(state);
+	}	
 	ProcessEntities(state);	
+	ProcessEvent(state);
 	ProcessRenderJobs(state, buffer);
 	EndFrame(state);
 }

@@ -65,6 +65,7 @@
 #include"typed_input.c"
 #include"typed_string.c"
 #include"typed_init.c"
+#include"typed_outputstring.c"
 #include"typed_score.c"
 #include"typed.c"
 
@@ -450,8 +451,8 @@ int WINAPI wWinMain(
 	buffer.y = winBuffer.y;	
 	buffer.stride = winBuffer.stride;
 	
-	bool timeGranularity = (timeBeginPeriod(1) == TIMERR_NOERROR);		
-	
+	bool timeResolution = (timeBeginPeriod(1) == TIMERR_NOERROR);
+		
 	LARGE_INTEGER lastCounter = win32_GetWallClock();
 	LARGE_INTEGER perfCount;
 	QueryPerformanceFrequency(&perfCount);	
@@ -469,7 +470,7 @@ int WINAPI wWinMain(
 		
 		buffer.data = winBuffer.data;
 		
-		LimitFps(lastCounter, timeGranularity);		
+		LimitFps(lastCounter, timeResolution);		
 		GameLoop(state, &buffer);
 		
 		HDC dc = GetDC(window);

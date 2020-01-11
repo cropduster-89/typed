@@ -7,14 +7,14 @@
         |___/|_|               		to loop anymore, fix
 ********************************************************************************/
 
-extern void ComputeCorrectWords(
+static void ComputeCorrectWords(
 	struct game_state *state,
 	struct entity *inputString)
 {
 	struct entity *line = GetCurrentOutputLine(state);
 	bool completeWord = true;
 	uint32_t correctWords = 0;	
-	for(int32_t i = 0; i < line->string.length; ++i) {
+	for(int32_t i = 0; i < inputString->string.length; ++i) {
 		char input = inputString->string.contents[i].glyph;
 		char output = line->string.contents[i].glyph;
 		bool correctLetter = (input == output);
@@ -29,21 +29,6 @@ extern void ComputeCorrectWords(
 		}
 	}
 	state->score.correctWords = correctWords;
-}
-
-static void CompareInput(
-	struct game_state *state)
-{	
-	struct entity *line = GetCurrentOutputLine(state);
-	struct entity *inputString = GetEntityByAlias(state, ENTALIAS_INPUTSTRING);
-	struct entity_character *current = &line->string.contents[inputString->string.length];	
-	if(INPUT_ISSET(state)) {		
-		if(current->state == CHARSTATE_NEUTRAL) {
-			current->state = CHARSTATE_RIGHT;
-		}			
-	} else {
-		current->state = CHARSTATE_WRONG;
-	}		
 }
 
 static bool InputIsCorrect(
@@ -63,6 +48,7 @@ static void TakeInput(
 	if(!InputIsCorrect(state)) {
 		state->score.lettersWrong++;
 		INPUT_CLEAR(state);
+		INPUT_WRONG_SET(state);
 	}
 }
 
@@ -71,7 +57,8 @@ static uint32_t GetWpm(
 	struct game_score *score)
 {
 	float minsElapsed = (float)(timer->currentTime - timer->gameStartTime) / 60000000.0f;
-	uint32_t result = (float)score->correctWords / minsElapsed;
+	uint32_t totalCorrect = score->correctWords + score->correctWordsCarry;
+	uint32_t result = (float)totalCorrect / minsElapsed;
 	
 	return(result);
 }
@@ -91,6 +78,7 @@ static void UpdateScore(
 	struct game_score *score = &state->score;	
 	if(RETURN_ISSET(state)) {
 		score->correctWordsCarry += score->correctWords;
+		score->correctWords = 0;
 	}
 	score->wpm = GetWpm(&state->timer, score);
 	score->accuracey = GetAcc(score);	
@@ -103,7 +91,6 @@ extern bool ComputeScore(
 	if(state->input.inputCharacter != '\0') {
 		struct entity *inputString = GetEntityByAlias(state, ENTALIAS_INPUTSTRING);
 		TakeInput(state, inputString);
-		CompareInput(state);
 		ComputeCorrectWords(state, inputString);
 		result = true;	
 	}

@@ -11,6 +11,8 @@
        |___/|_|               
 ********************************************************************************/
 
+#define MAX_STRINGLENGTH 64
+
 /*
 *	Entity types, strings first,
 *	rects second
@@ -109,7 +111,7 @@ struct entity_character {
 };
 
 struct entity_string {
- 	struct entity_character contents[128];
+ 	struct entity_character contents[MAX_STRINGLENGTH];
 	uint32_t length;
 	uint32_t lengthInPixels;		
 	int32_t backgroundIndex;
