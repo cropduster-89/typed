@@ -44,6 +44,7 @@ struct game_state {
 	struct game_score score;
 	
 	void *characterBuffer;
+	void *bmpBuffer;
 	
 	char *outputStringBuffer;
 	uint32_t outputStringBufferSize;	

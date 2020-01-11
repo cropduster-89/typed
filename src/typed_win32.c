@@ -65,6 +65,7 @@
 #include"typed_input.c"
 #include"typed_string.c"
 #include"typed_init.c"
+#include"typed_scorelabel.c"
 #include"typed_outputstring.c"
 #include"typed_score.c"
 #include"typed.c"
@@ -118,6 +119,7 @@ LRESULT CALLBACK WindowProc(
 	} case WM_CREATE: {
 		struct game_state *state = (struct game_state *)win32_Allocate(sizeof(struct game_state));
 		state->characterBuffer = win32_Allocate(KILOBYTES(70));
+		state->bmpBuffer = win32_Allocate(KILOBYTES(400));
 		SetClassLongPtrW(window, 0, (ULONG_PTR)state);
 		break;	
 	} case WM_KEYUP: {

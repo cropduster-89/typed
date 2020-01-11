@@ -15,47 +15,23 @@ static void CreateBanner(
 	float xAnchor = (float)buffer->x * 0.25f;
 	float yAnchor = (float)buffer->y - 80.0f;	
 	
-	union vec2 bannerPos = {
-		.x = xAnchor - 10.0f,
-		.y = yAnchor
-	};
-	union vec2 bannerDim = {
-		.x = (float)buffer->x - 10 - bannerPos.x,
-		.y = 30.0f
-	};
+	union vec2 bannerPos = {.x = xAnchor - 10.0f, .y = yAnchor};
+	union vec2 bannerDim = {.x = (float)buffer->x - 10 - bannerPos.x,.y = 30.0f};
 	struct entity *bannerRect = NewEntity(state, bannerPos, bannerDim, ENTTYPE_GENERICRECT);
 	bannerRect->rect.colour = COL_GREEN;
 	
-	union vec2 bannerDecorPos = {
-		.x = bannerPos.x + 3.0f,
-		.y = bannerPos.y + 3.0f
-	};
-	union vec2 bannerDecorDim = {
-		.x = bannerDim.x - 6.0f - 30.0f,
-		.y = 3.0f
-	};
+	union vec2 bannerDecorPos = {.x = bannerPos.x + 3.0f, .y = bannerPos.y + 3.0f};
+	union vec2 bannerDecorDim = {.x = bannerDim.x - 6.0f - 30.0f, .y = 3.0f};
 	struct entity *bannerDecor = NewEntity(state, bannerDecorPos, bannerDecorDim, ENTTYPE_GENERICRECT);
 	bannerDecor->rect.colour = COL_GREEN_DARK;
 	
-	union vec2 bannerNubPos = {
-		.x = bannerPos.x + bannerDecorDim.x + 8.0f,
-		.y = bannerPos.y + 3.0f
-	};
-	union vec2 bannerNubDim = {
-		.x = 24.0f,
-		.y = 24.0f
-	};
+	union vec2 bannerNubPos = {.x = bannerPos.x + bannerDecorDim.x + 8.0f, .y = bannerPos.y + 3.0f};
+	union vec2 bannerNubDim = {.x = 24.0f, .y = 24.0f};
 	struct entity *bannerNub = NewEntity(state, bannerNubPos, bannerNubDim, ENTTYPE_GENERICRECT);	
 	bannerNub->rect.colour = COL_GREEN_DARK;
 	
-	union vec2 updatePos = {
-		.x = bannerDecorPos.x + 9.0f,
-		.y = bannerPos.y + 7.0f
-	};
-	union vec2 updateDim = {
-		.x = 100,
-		.y = 25
-	};
+	union vec2 updatePos = {.x = bannerDecorPos.x + 9.0f, .y = bannerPos.y + 7.0f};
+	union vec2 updateDim = {.x = 100, .y = 25};
 	struct entity *update = NewEntity(state, updatePos, updateDim, ENTTYPE_UPDATESTRING);
 	BITSET(update->state, ENTSTATE_ISCLIPPED);
 	update->clipRect = MakeClipRect(bannerPos.x + 10.0f, bannerPos.y, bannerDim.x - 34.0f, bannerDim.y);
@@ -78,7 +54,6 @@ static void CreateInput(
 		.y = 5.0f
 	};
 	struct entity *inputBottom = NewEntity(state, inputBottomPos, inputBottomDim, ENTTYPE_GENERICRECT);	
-	BITSET(inputBottom->state, ENTSTATE_DRAWONCE);
 	inputBottom->rect.colour = COL_GREEN;
 	
 	union vec2 inputTopPos = {
@@ -90,7 +65,7 @@ static void CreateInput(
 		.y = 5.0f
 	};
 	struct entity *inputTop = NewEntity(state, inputTopPos, inputTopDim, ENTTYPE_GENERICRECT);	
-	BITSET(inputTop->state, ENTSTATE_DRAWONCE);
+	
 	inputTop->rect.colour = COL_GREEN;
 	
 	union vec2 inputBackPos = {
@@ -99,7 +74,7 @@ static void CreateInput(
 	};
 	union vec2 inputBackDim = FloatToVec2((buffer->x - 50) - inputBackPos.x, 
 		inputTopPos.y - inputBottomPos.y - 5.0f);
-	struct entity *inputBack = NewEntity(state, inputBackPos, inputBackDim, ENTTYPE_GENERICRECT);	
+	struct entity *inputBack = NewEntity(state, inputBackPos, inputBackDim, ENTTYPE_BACKRECT);	
 	inputBack->rect.colour = COL_BLACK;
 	
 	union vec2 inputPos = {
@@ -135,9 +110,9 @@ extern void CreateUi(
 		.x = bufferX,
 		.y = bufferY
 	};	
-	struct entity *backRect = NewEntity(state, backRectPos, backRectDim, ENTTYPE_GENERICRECT);
+	struct entity *backRect = NewEntity(state, backRectPos, backRectDim, ENTTYPE_BACKRECT);
 	backRect->rect.colour = COL_BLACK;
-	BITSET(backRect->state, ENTSTATE_DRAWONCE);
+	
 		
 	CreateBanner(state, buffer);	
 	CreateInput(state, buffer);	
@@ -152,7 +127,7 @@ extern void CreateUi(
 	};	
 	struct entity *topRect = NewEntity(state, topRectPos, topRectDim, ENTTYPE_GENERICRECT);
 	topRect->rect.colour = COL_GREEN_DARK;
-	BITSET(topRect->state, ENTSTATE_DRAWONCE);
+	
 	
 	union vec2 headerPos = {
 		.x = xAnchor, 
@@ -173,7 +148,7 @@ extern void CreateUi(
 		.x = (float)bufferX - 20 - xAnchor,
 		.y = 125
 	};	
-	struct entity *outputRect = NewEntity(state, outputRectPos, outputRectDim, ENTTYPE_GENERICRECT);
+	struct entity *outputRect = NewEntity(state, outputRectPos, outputRectDim, ENTTYPE_BACKRECT);
 	outputRect->rect.colour = COL_BLACK;
 	BITSET(outputRect->state, ENTSTATE_DRAWONCE);
 			
@@ -423,7 +398,7 @@ extern void CreateUi(
 		.y = 66.0f
 	};
 	struct entity *scoreRect = NewEntity(state, scoreRectPos, 
-		scoreRectDim, ENTTYPE_GENERICRECT);
+		scoreRectDim, ENTTYPE_BACKRECT);
 	BITSET(scoreRect->state, ENTSTATE_DRAWONCE);	
 	scoreRect->rect.colour = COL_BLACK;
 	
@@ -514,7 +489,7 @@ extern void CreateUi(
 		.y = 25.0f
 	};
 	struct entity *wpmBar = NewEntity(state, wpmBarPos, 
-		wpmBarDim, ENTTYPE_GENERICRECT);	
+		wpmBarDim, ENTTYPE_PROGRESSRECT);	
 	wpmBar->rect.colour = COL_GREEN;
 	
 	union vec2 wpmBarEndPos = {
@@ -526,7 +501,7 @@ extern void CreateUi(
 		.y = 25.0f
 	};
 	struct entity *wpmBarEnd = NewEntity(state, wpmBarEndPos, 
-		wpmBarEndDim, ENTTYPE_GENERICRECT);
+		wpmBarEndDim, ENTTYPE_BACKRECT);
 	wpmBarEnd->rect.colour = COL_BLACK;
 	
 	union vec2 accBarPos = {
@@ -538,7 +513,7 @@ extern void CreateUi(
 		.y = 25.0f
 	};
 	struct entity *accBar = NewEntity(state, accBarPos, 
-		accBarDim, ENTTYPE_GENERICRECT);	
+		accBarDim, ENTTYPE_PROGRESSRECT);	
 	accBar->rect.colour = COL_GREEN;
 	
 	union vec2 accBarEndPos = {
@@ -550,6 +525,19 @@ extern void CreateUi(
 		.y = 25.0f
 	};
 	struct entity *accBarEnd = NewEntity(state, accBarEndPos, 
-		accBarEndDim, ENTTYPE_GENERICRECT);
+		accBarEndDim, ENTTYPE_BACKRECT);
 	accBarEnd->rect.colour = COL_BLACK;
+	
+	union vec2 progressBarPos = {
+		.x = bufferX * 0.25f,
+		.y = bufferY - 80.0f - 33.0f
+	};
+	union vec2 ProgressBarDim = {
+		.x = 0,
+		.y = 2.0f
+	};
+	struct entity *bannerRect = NewEntity(state, progressBarPos, ProgressBarDim, ENTTYPE_PROGRESSRECT);
+	bannerRect->rect.colour = COL_GREEN;
+	
+	LoadBmps(state, CountEntitiesByType(state, 0, CountRects));
 }

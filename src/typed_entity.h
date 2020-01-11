@@ -28,10 +28,11 @@ enum entity_type {
 	ENTTYPE_OUTPUTSTRING,
 	ENTTYPE_SCORELABEL,
 	ENTTYPE_CURSORRECT,
-	ENTTYPE_GENERICRECT,
-	ENTTYPE_PROGRESSRECT,
+	ENTTYPE_GENERICRECT,	
 	ENTTYPE_BANNERRECT,
 	ENTTYPE_OUTPUTCLIPRECT,	
+	ENTTYPE_BACKRECT,	
+	ENTTYPE_PROGRESSRECT,
 	
 	ENTTYPE_COUNT
 };
@@ -101,9 +102,14 @@ enum entity_alias {
 	ENTALIAS_WPMBAREND,
 	ENTALIAS_ACCBAR,
 	ENTALIAS_ACCBAREND,
+	ENTALIAS_PROGRESSRECT,
 	
 	ENTALIAS_DYNAMICSTART,
 };
+
+#define ENTITY_COUNT_CONDITION(name) bool name(struct game_state *state, enum entity_type type, int32_t i)
+typedef ENTITY_COUNT_CONDITION(entity_count_condition);
+
 
 struct entity_character {
 	char glyph;
@@ -125,6 +131,7 @@ struct entity_string {
 struct entity_rect {
 	union vec4 colour;
 	uint32_t parentIndex;
+	uint32_t assetIndex;
 };
 
 enum entity_state {
@@ -152,5 +159,7 @@ struct entity {
 		struct entity_rect rect;
 	};
 };
+
+int32_t GetNextRect(struct game_state *, int32_t);
 
 #endif
