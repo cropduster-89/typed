@@ -54,8 +54,11 @@ static void ProcessEntities(
 	for(int32_t i = 0; i < MAX_ENTITIES; i++) {
 		struct entity *current = &state->entities[i];
 		switch(current->type) {
-		case ENTTYPE_SCORELABEL:
-		case ENTTYPE_LABELSTRING: {
+		case ENTTYPE_SCORELABEL: {
+			DeleteIfObselete(state, current);
+			DrawString(state, current);
+			break;
+		} case ENTTYPE_LABELSTRING: {
 			DrawString(state, current);
 			break;
 		} case ENTTYPE_INPUTSTRING: {
@@ -72,21 +75,8 @@ static void ProcessEntities(
 			ProcessUpdateString(state, current);
 			DrawString(state, current);
 			break;
-		} case ENTTYPE_CURSORRECT: {
-			struct entity *inputControl = &state->entities[current->rect.parentIndex];
-			assert(inputControl);
-			union vec4 colour = FloatToVec4(0.0f, 0.0f, 0.0f, 1.0f);
-			if(!BITCHECK(current->state, ENTSTATE_INVISIBLE)) {
-				colour = current->rect.colour;
-			}
-			union vec2 newPos = {
-				.x = current->pos.x + inputControl->string.lengthInPixels,
-				.y = current->pos.y
-			};
-			PushRect(state, current->rect.assetIndex, newPos, current->dim, colour);
-			break;
-		} case ENTTYPE_GENERICRECT: {
-			if(current->dim.x < 1) break;
+		} case ENTTYPE_CURSORRECT:
+		case ENTTYPE_GENERICRECT: {
 			DrawRect(state, current);
 			break;
 		} case ENTTYPE_PROGRESSRECT: {
@@ -161,7 +151,6 @@ static void EndGame(
 	inputString->string.length = 0;
 	inputString->string.lengthInPixels = 0;
 	ResetTimerRects(state);
-	RedrawAll(state);
 	NewScore(state);
 }
 

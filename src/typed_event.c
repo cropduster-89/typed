@@ -2,12 +2,10 @@
  _____                      _ 
 /__   \_   _ _ __   ___  __| |		Events implementation
   / /\/ | | | '_ \ / _ \/ _` |
- / /  | |_| | |_) |  __/ (_| |		TODO move entity specifc code out
- \/    \__, | .__/ \___|\__,_|		elsewhere, or bake functions into
-       |___/|_|               		the data
-       
-					TODO change creation so events can be made with 
-					a single function call 
+ / /  | |_| | |_) |  __/ (_| |		TODO change creation so events can be made with 
+ \/    \__, | .__/ \___|\__,_|		a single function call 
+       |___/|_|               		
+					
 ********************************************************************************/
 
 EVENT_CHECK_PROGRESS(event_ProgressCheckUp)
@@ -186,6 +184,48 @@ static void ProcessBlink(
 	}
 }
 
+static void ProcessFade(
+	struct game_state *state,
+	struct entity_event *event,
+	struct entity *target)
+{
+	if(state->timer.currentTime - event->blink.startTime > event->blink.interval) {
+		BITSET(target->state, ENTSTATE_INVISIBLE);
+		event->blink.startTime = state->timer.currentTime;
+	}
+}
+
+static void ProcessFlash(
+	struct game_state *state,
+	struct entity_event *event,
+	struct entity *target)
+{
+	if(event->flash.duration != 0 && state->timer.currentTime - event->flash.startTime >
+	   event->flash.duration) {
+		DeleteEvent(state, event->index);
+		ChangeLabelState(target, CHARSTATE_BLACK);
+	} else if(state->timer.currentTime - event->flash.lastFlash > event->flash.interval) {
+		event->flash.lastFlash = state->timer.currentTime;
+		if(target->string.contents[0].state == CHARSTATE_NEUTRAL) {
+			ChangeLabelState(target, CHARSTATE_BLACK);
+		} else {
+			ChangeLabelState(target, CHARSTATE_NEUTRAL);
+		}
+	}
+}
+
+static void ProcessMove(
+	struct game_state *state,
+	struct entity_event *event,
+	struct entity *target)
+{
+	target->pos = AddVec2(target->pos, event->move.increment);
+	if(event->move.CheckProgress(target->pos, event->move.destination)) {
+		target->pos = event->move.destination;
+		DeleteEvent(state, event->index);
+	}
+}
+
 extern void ProcessEvent(
 	struct game_state *state)
 {
@@ -197,37 +237,15 @@ extern void ProcessEvent(
 			ProcessBlink(state, event, target);
 			break;
 		} case EVENT_FADE: {
-			if(state->timer.currentTime - event->fade.start > event->fade.end) {
-				BITTOGGLE(target->state, ENTSTATE_INVISIBLE);
-				event->fade.start = state->timer.currentTime;
-				DeleteEvent(state, event->index);
-			}
+			ProcessFade(state, event, target);
 			break;
 		} case EVENT_FLASH: {
-			if(event->flash.duration != 0 && state->timer.currentTime - event->flash.startTime >
-			   event->flash.duration) {
-				DeleteEvent(state, event->index);
-				ChangeLabelState(target, CHARSTATE_BLACK);
-			} else if(state->timer.currentTime - event->flash.lastFlash > event->flash.interval) {
-				event->flash.lastFlash = state->timer.currentTime;
-				if(target->string.contents[0].state == CHARSTATE_NEUTRAL) {
-					ChangeLabelState(target, CHARSTATE_BLACK);
-				} else {
-					ChangeLabelState(target, CHARSTATE_NEUTRAL);
-				}
-			}
+			ProcessFlash(state, event, target);
 			break;
 		} case EVENT_MOVEUP:
 		case EVENT_MOVEDOWN:
 		case EVENT_MOVELEFT: {
-			target->pos = AddVec2(target->pos, event->move.increment);
-			if(event->move.CheckProgress(target->pos, event->move.destination)) {
-				target->pos = event->move.destination;
-				DeleteEvent(state, event->index);
-				if(target->type == ENTTYPE_SCORELABEL && target->string.position == 7) {					
-					DeleteEntityAt(state, target->index);
-				}
-			}
+			ProcessMove(state, event, target);
 			break;
 		} default: break;
 		}

@@ -73,3 +73,12 @@ extern void NewScore(
 	scoreBasePos.y -= positionOffset;
 	NewMoveEvent(state, event, FloatToVec2(scorePos.x, scoreBasePos.y), FloatToVec2(0, 4.5f));
 }
+
+extern void DeleteIfObselete(
+	struct game_state *state,
+	struct entity *current)
+{
+	if(current->string.position >= 7) {
+		DeleteEntityAt(state, current->index);
+	}
+}

@@ -290,7 +290,6 @@ static void WriteBmpToBuffer(
 	}
 }	
 
-
 static void WriteSolidColourToBuffer(
 	struct screen_buffer* b,
 	int32_t endX,
@@ -299,13 +298,14 @@ static void WriteSolidColourToBuffer(
 	uint32_t startY,
 	union vec4 colour)
 {
-	colour = ClampColourV4(colour);
 	uint32_t uColour = UnpackColour(colour);
 	uint8_t *row = ((uint8_t *)b->data + 
 		startX * BYTES_PER_PIXEL + startY * b->stride);
 	for(int32_t x = 0; x < endY; ++x) {
-		uint32_t *data = (uint32_t *)row;		
-		memset(data, uColour, endX * BYTES_PER_PIXEL);		
+		uint32_t *data = (uint32_t *)row;
+		for(int32_t x = 0; x < endX; ++x) {
+			*data++ = uColour;
+		}
 		row += b->stride;
 	}
 }
@@ -347,8 +347,6 @@ extern void DrawInternalBmp(
 		row += maxX * BYTES_PER_PIXEL;
 	}
 }
-
-#define PI32 3.14159265358979323846f
 
 extern void ProcessRenderJobs(
 	struct game_state *state,

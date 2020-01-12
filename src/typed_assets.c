@@ -65,7 +65,7 @@ extern void LoadBmps(
 	uint32_t sizeTotal = sizeof(struct asset_header) * count;
 	int32_t rectIndex = 1;
 	int32_t nextStart = 1;
-	for(int32_t i = 0; i < count - 1; ++i) {		
+	for(int32_t i = 0; i < count; ++i) {		
 		rectIndex = GetNextRect(state, nextStart);
 		
 		struct entity *rect = &state->entities[rectIndex];

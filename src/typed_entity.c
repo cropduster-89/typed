@@ -1,3 +1,12 @@
+/********************************************************************************
+ _____                      _ 
+/__   \_   _ _ __   ___  __| |		Entity implmentation:
+  / /\/ | | | '_ \ / _ \/ _` |
+ / /  | |_| | |_) |  __/ (_| |		*Support functions for creating,
+ \/    \__, | .__/ \___|\__,_|		deleting, and doing unspecified 
+       |___/|_|               		things to entities
+********************************************************************************/
+
 static bool IsCorrectEntity(
 	struct game_state *state,
 	int32_t i,
@@ -40,34 +49,9 @@ extern bool _IsType(
 	return(current->type >= start && current->type < end);
 }
 
-static bool _RedrawBackground(
-	struct entity *current,
-	bool clearAll)
-{
-	return(!clearAll && IsString(current) && current->string.backgroundIndex != 0);
-}
-
-#define _RedrawAllInRange(state, ent) _RedrawEntities(state, \
-	ent.string.backgroundIndex, ent.string.backgroundIndex + ent.string.backgroundCount, false)
-#define RedrawAllDynamic(state) (_RedrawEntities(state, ENTALIAS_DYNAMICSTART, MAX_ENTITIES, false))
-#define RedrawAll(state) (_RedrawEntities(state, 0, MAX_ENTITIES, true))
-extern void _RedrawEntities(
-	struct game_state *state,
-	uint32_t start,
-	uint32_t end,
-	bool clearAll)
-{	
-	for(int32_t i = start; i < end; ++i) {		
-		if(_RedrawBackground(&state->entities[i], clearAll)) {
-			_RedrawAllInRange(state, state->entities[i]);
-		}
-		BITCLEAR(state->entities[i].state, ENTSTATE_WASDRAWN);
-	}
-}
-
 ENTITY_COUNT_CONDITION(CountRects)
 {
-	return(state->entities[i].type > RECT_START && state->entities[i].type < ENTTYPE_BACKRECT);
+	return(state->entities[i].type >= RECT_START && state->entities[i].type < ENTTYPE_BACKRECT);
 }
 
 ENTITY_COUNT_CONDITION(CountSingleType)

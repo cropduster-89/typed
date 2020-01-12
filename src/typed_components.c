@@ -78,8 +78,12 @@ extern void ProcessInputString(
 	} else if(INPUT_ISSET(state)) {		
 		current->string.contents[current->string.length++].glyph =
 			state->input.inputCharacter;
-		current->string.lengthInPixels += GetCharacterWidth(state,
+		uint32_t newLength = GetCharacterWidth(state,
 			state->input.inputCharacter) + 1.0f;
+		current->string.lengthInPixels += newLength;
+		
+		struct entity *cursorRect = GetEntityByAlias(state, ENTALIAS_INPUTCURSOR);
+		cursorRect->pos.x += newLength;
 	}
 }
 
@@ -122,7 +126,7 @@ extern void ClearInput(
 	inputControl->string.lengthInPixels = 0;
 }
 
-static void ProcessUpdateString(
+extern void ProcessUpdateString(
 	struct game_state *state,
 	struct entity *current)
 {

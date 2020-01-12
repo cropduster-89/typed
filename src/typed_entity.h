@@ -11,7 +11,7 @@
        |___/|_|               
 ********************************************************************************/
 
-#define MAX_STRINGLENGTH 84
+#define MAX_STRINGLENGTH 72
 
 /*
 *	Entity types, strings first,
@@ -31,9 +31,7 @@ enum entity_type {
 	ENTTYPE_GENERICRECT,	
 	ENTTYPE_BANNERRECT,
 	ENTTYPE_PROGRESSRECT,
-	ENTTYPE_OUTPUTCLIPRECT,	
 	ENTTYPE_BACKRECT,	
-	
 	
 	ENTTYPE_COUNT
 };
@@ -130,8 +128,6 @@ struct entity_rect {
 enum entity_state {
 	ENTSTATE_INVISIBLE = 0,	
 	ENTSTATE_ISCLIPPED = 8,	
-	ENTSTATE_DRAWONCE = 16,	
-	ENTSTATE_WASDRAWN = 24,	
 };
 
 /*
@@ -142,7 +138,7 @@ enum entity_state {
 
 struct entity {
 	enum entity_type type;
-	uint64_t state;
+	uint32_t state;
 	uint32_t index;
 	union vec2 pos;
 	union vec2 dim;

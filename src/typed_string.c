@@ -32,7 +32,7 @@ static char templateStrings[3][800] = {
 		"this wasn't the %s future they had planned, \"She should be %s %s or something %s like that!\" They "		//4
 		"would %s say to each other. But nothing would stop her, and now, 20 %s, and %s years later, she's still %s "	//4
 		"%s with the same %s as before, and has become a leading authority in the %s of %s. Her papers on the "	//4
-		"%s %ss of the region has become one of the most %s in the field, and earned her the %s, %s %s "	//6
+		"%s %ss of the region have become somee of the most %s in the field, and earned her the %s, %s %s "	//6
 		"award. Try %s a %s with a CV like that. So please %s welcome our keynote speaker, the %s woman with the "	//4
 		"hair weaved entirely from %s, and %s %ss!\", \"My %s thanks, Leslie.\"\0"					//4			//4
 	}, {
@@ -281,7 +281,7 @@ static void CreateOutputEntities(
 	InitNewLine(newEntity, outputClipRect);
 		
 	uint32_t totalines = 0;		
-	uint32_t overflow = dim.x - 30.0f;
+	uint32_t overflow = dim.x - 60.0f;
 	char *startFrom = state->outputStringBuffer;
 	char *current = startFrom;
 	char *lastSpace = startFrom;
