@@ -56,9 +56,11 @@ static void NewFadeEvent(
 
 static void NewBlinkEvent(
 	struct game_timer *timer,
-	struct entity_event *event)
+	struct entity_event *event,
+	uint32_t interval)
 {
-	event->blink.start = timer->currentTime;
+	event->blink.startTime = timer->currentTime;
+	event->blink.interval = interval;
 }
 
 static void InitMoveEvent(
@@ -173,6 +175,17 @@ extern void RePositionOutput(
 	}
 }
 
+static void ProcessBlink(
+	struct game_state *state,
+	struct entity_event *event,
+	struct entity *target)
+{
+	if(state->timer.currentTime - event->blink.startTime > event->blink.interval) {
+		BITTOGGLE(target->state, ENTSTATE_INVISIBLE);
+		event->blink.startTime = state->timer.currentTime;
+	}
+}
+
 extern void ProcessEvent(
 	struct game_state *state)
 {
@@ -181,16 +194,12 @@ extern void ProcessEvent(
 		struct entity *target = &state->entities[event->parentIndex];
 		switch(event->type) {
 		case EVENT_BLINK: {
-#define BLINK_TIME 500000ull
-			if(state->timer.currentTime - event->blink.start > BLINK_TIME) {
-				BITTOGGLE(target->state, ENTSTATE_INVISIBLE);
-				event->blink.start = state->timer.currentTime;
-			}
+			ProcessBlink(state, event, target);
 			break;
 		} case EVENT_FADE: {
 			if(state->timer.currentTime - event->fade.start > event->fade.end) {
 				BITTOGGLE(target->state, ENTSTATE_INVISIBLE);
-				event->blink.start = state->timer.currentTime;
+				event->fade.start = state->timer.currentTime;
 				DeleteEvent(state, event->index);
 			}
 			break;
@@ -219,7 +228,6 @@ extern void ProcessEvent(
 					DeleteEntityAt(state, target->index);
 				}
 			}
-
 			break;
 		} default: break;
 		}

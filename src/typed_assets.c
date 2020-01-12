@@ -102,6 +102,9 @@ extern struct loaded_character *GetCharacter(
 		((struct asset_header *)charBuffer) + (input - GLYPH_OFFSET);	
 	struct loaded_character *character = 
 		(struct loaded_character*)((uint8_t *)charBuffer + header->startIndex);
+#ifdef DEBUG
+	assert(character);
+#endif
 	return(character);
 }
 
@@ -113,6 +116,8 @@ extern struct loaded_bmp *GetBmp(
 		((struct asset_header *)bmpBuffer) + (index);	
 	struct loaded_bmp *bmp = 
 		(struct loaded_bmp*)((uint8_t *)bmpBuffer + header->startIndex);
+#ifdef DEBUG
 	assert(bmp);
+#endif
 	return(bmp);
 }

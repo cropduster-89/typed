@@ -7,6 +7,14 @@
         |___/|_|               
 ********************************************************************************/
 
+extern bool DrawOutput(
+	struct game_state *state,
+	struct entity *current)
+{
+	return(current->string.position < state->atLine - 1 || 
+	       current->string.position > state->atLine + 5);
+}
+
 static void ScrollOutput(
 	struct game_state *state,
 	struct entity *current,

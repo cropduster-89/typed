@@ -10,6 +10,20 @@ union vec2 {
 	float array[2];
 };
 
+union vec3 {
+	struct {
+		float x;
+		float y;
+		float z;
+	};
+	struct {
+		float r;
+		float g;
+		float b;
+	};
+	float array[3];
+};
+
 union vec4 {
 	struct {
 		float x;
@@ -22,6 +36,10 @@ union vec4 {
 		float g;
 		float b;
 		float a;
+	};
+	struct {
+		union vec3 xyz;
+		float ignored;
 	};
 	float array[4];
 };
@@ -163,6 +181,18 @@ extern union vec4 FloatToVec4(
 		.y = y,
 		.z = z,
 		.w = w
+	};
+	return(result);
+}
+
+extern union vec3 MultVec3(
+	union vec3 a,
+	float b)
+{
+	union vec3 result = {
+		.x = a.x * b,
+		.y = a.y * b,
+		.z = a.z * b,
 	};
 	return(result);
 }

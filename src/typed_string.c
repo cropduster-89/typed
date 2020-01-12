@@ -229,7 +229,25 @@ extern uint32_t GetCharacterWidth(
 	return(result);
 }
 
-static void InitNewLine(
+extern void PrepAccString(
+	struct game_state *state,
+	struct entity *current)
+{
+	char buffer[12];
+	sprintf(buffer, "%.0f%%", state->score.accuracey);
+	CreateLabel(current, buffer, CHARSTATE_UI);
+}
+
+extern void PrepWpmString(
+	struct game_state *state,
+	struct entity *current)
+{
+	char buffer[12];
+	sprintf(buffer, "%d", state->score.wpm);
+	CreateLabel(current, buffer, CHARSTATE_UI);
+}
+
+extern void InitNewLine(
 	struct entity *line,
 	struct rect2 clipRect)
 {

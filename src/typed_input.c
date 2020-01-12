@@ -74,7 +74,7 @@ extern void ReceiveInput(
 		PGDOWN_CLEAR(state);
 	}
 	
-	if(BITCHECK(state->input.state, ISTATE_TAB)) {
+	if(TAB_ISSET(state)) {
 		RestartGame(state);
 	}
 }

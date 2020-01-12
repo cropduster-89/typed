@@ -46,7 +46,8 @@ struct event_flash {
 };
 
 struct event_blink {
-	uint64_t start;		
+	uint64_t startTime;		
+	uint64_t interval;		
 };
 
 struct event_fade {

@@ -16,8 +16,8 @@
 #define SECOND 1000000ull
 #define INVALID_PATH assert(0)
 
-#define KILOBYTES(value) ((value)*1024LL)
-#define MEGABYTES(value) (KILOBYTES(value)*1024LL)
+#define KILOBYTES(value) ((value) * 1024ULL)
+#define MEGABYTES(value) (KILOBYTES(value) * 1024ULL)
 
 #define COL_GREEN_DARK FloatToVec4(0.1f, 0.3, 0.1f, 1.0f)
 #define COL_GREEN FloatToVec4(0.3f, 0.65f, 0.3f, 1.0f)
@@ -53,9 +53,8 @@ struct platform_api {
 } api;
 
 struct file_read_output {
-	uint32_t contentsSize;
-	
 	void* contents;
+	uint32_t contentsSize;	
 };
 
 #endif

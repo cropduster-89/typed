@@ -42,7 +42,8 @@
 #include<stdbool.h>
 #include<assert.h>
 #include<string.h>
-#include<xmmintrin.h>
+
+#define DEFAULT_FONT_PATH "C:/Windows/Fonts/consola.ttf"
 
 #define STB_TRUETYPE_IMPLEMENTATION
 #include "stb_truetype.h"
@@ -68,10 +69,9 @@
 #include"typed_init.c"
 #include"typed_scorelabel.c"
 #include"typed_outputstring.c"
+#include"typed_components.c"
 #include"typed_score.c"
 #include"typed.c"
-
-#define DEFAULT_FONT_PATH "C:/Windows/Fonts/consola.ttf"
 
 static int64_t globalPerfCount;
 
@@ -391,19 +391,15 @@ static inline LARGE_INTEGER win32_GetWallClock(void)
 } 
 
 static void LimitFps(
-	LARGE_INTEGER lastCounter,
-	bool timeGranularity)
+	LARGE_INTEGER lastCounter)
 {
 #define TARGET_FPS 60
 #define TARGET_SPF (1.0f / TARGET_FPS)	
 	LARGE_INTEGER workCounter = win32_GetWallClock();
 	float secondsElapsedForFrame = win32_GetSecondsElapsed(lastCounter, workCounter);			
 	if(secondsElapsedForFrame < TARGET_SPF) {
-		DWORD sleepMS = (DWORD)(1000.0f * (TARGET_SPF - secondsElapsedForFrame));
-		if(timeGranularity) {
-			if(sleepMS > 0.0f) 
-				Sleep(sleepMS);
-		}						
+		DWORD sleepMS = (DWORD)(1000.0f * (TARGET_SPF - secondsElapsedForFrame));		
+		if(sleepMS > 0.0f) {Sleep(sleepMS);}					
 		while(secondsElapsedForFrame < TARGET_SPF) {
 			secondsElapsedForFrame = win32_GetSecondsElapsed(lastCounter, 
 				win32_GetWallClock());									
@@ -411,11 +407,11 @@ static void LimitFps(
 	}
 }
 
-int WINAPI wWinMain(
-	HINSTANCE hInstance,
-	HINSTANCE hPrevInstance,
-	PWSTR pCmdLine,
-	int nCmdShow)
+static HWND NewWindow(
+	LPWSTR title,
+	DWORD x,
+	DWORD y,
+	HINSTANCE hInstance)
 {
 	WNDCLASSEXW winClass = {};
 	winClass.cbSize = sizeof(WNDCLASSEXW);
@@ -424,14 +420,29 @@ int WINAPI wWinMain(
 	winClass.cbClsExtra = sizeof(ULONG_PTR);
 	winClass.hInstance = hInstance;
 	winClass.lpszClassName = L"mainclass";
+#ifdef DEBUG 	
+	assert(RegisterClassExW(&winClass));
+#else 
 	RegisterClassExW(&winClass);
-
+#endif
 	HWND window = CreateWindowExW(0,
 		winClass.lpszClassName, L"typed",
 		WS_OVERLAPPED  | WS_VISIBLE | WS_SYSMENU,
-		CW_USEDEFAULT, CW_USEDEFAULT, 980, 420,
+		CW_USEDEFAULT, CW_USEDEFAULT, x, y,
 		NULL, NULL, hInstance, NULL);
-		
+#ifdef DEBUG 
+	assert(window);
+#endif
+	return(window);
+}
+
+int WINAPI wWinMain(
+	HINSTANCE hInstance,
+	HINSTANCE hPrevInstance,
+	PWSTR pCmdLine,
+	int nCmdShow)
+{
+	HWND window = NewWindow(L"typed", 980, 420, hInstance);		
 	struct game_state *state = (struct game_state *)GetClassLongPtrW(window, 0);
 
 	api.ReadFile = win32_ReadFile;
@@ -453,15 +464,13 @@ int WINAPI wWinMain(
 	buffer.x = winBuffer.x;	
 	buffer.y = winBuffer.y;	
 	buffer.stride = winBuffer.stride;
-	
-	bool timeResolution = (timeBeginPeriod(1) == TIMERR_NOERROR);
-		
+#ifdef DEBUG	
+	assert(timeBeginPeriod(1) == TIMERR_NOERROR);
+#endif		
 	LARGE_INTEGER lastCounter = win32_GetWallClock();
 	LARGE_INTEGER perfCount;
 	QueryPerformanceFrequency(&perfCount);	
 	globalPerfCount = perfCount.QuadPart;
-
-	LoadFont(state->characterBuffer, DEFAULT_FONT_PATH);	
 	
 	MSG msg;
 	while(1) {
@@ -469,11 +478,10 @@ int WINAPI wWinMain(
 			if(msg.message == WM_QUIT) {break;}
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
-		}
+		}		
+		buffer.data = winBuffer.data;		
+		LimitFps(lastCounter);		
 		
-		buffer.data = winBuffer.data;
-		
-		LimitFps(lastCounter, timeResolution);		
 		GameLoop(state, &buffer);
 		
 		HDC dc = GetDC(window);

@@ -80,7 +80,7 @@ static void CreateInput(
 	cursor->rect.parentIndex = inputControl->index;
 	cursor->rect.colour = COL_GREEN;
 	struct entity_event * event = NewEvent(state, cursor->index, EVENT_BLINK);
-	NewBlinkEvent(&state->timer, event);
+	NewBlinkEvent(&state->timer, event, 500000ul);
 }
 
 extern void CreateUi(
@@ -429,7 +429,5 @@ extern void CreateUi(
 	};
 	struct entity *accBar = NewEntity(state, accBarPos, 
 		accBarDim, ENTTYPE_BACKRECT);	
-	accBar->rect.colour = COL_GREEN;
-		
-	LoadBmps(state, CountEntitiesByType(state, 0, CountRects));
+	accBar->rect.colour = COL_GREEN;	
 }
