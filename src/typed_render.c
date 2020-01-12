@@ -2,10 +2,10 @@
   _____                      _ 
  /__   \_   _ _ __   ___  __| |		Renderer
    / /\/ | | | '_ \ / _ \/ _` |
-  / /  | |_| | |_) |  __/ (_| |		*Move solid rects to bmps drawn at runtime
-  \/    \__, | .__/ \___|\__,_|		*SIMD! 
-        |___/|_|               
-
+  / /  | |_| | |_) |  __/ (_| |		
+  \/    \__, | .__/ \___|\__,_|		*SIMD! (3rd time lucky?)
+        |___/|_|               		*make sine modulation pulse more slowly
+					how to do this smoothly?
 ********************************************************************************/
 
 static void PushRenderJob(
@@ -299,6 +299,7 @@ static void WriteSolidColourToBuffer(
 	uint32_t startY,
 	union vec4 colour)
 {
+	colour = ClampColourV4(colour);
 	uint32_t uColour = UnpackColour(colour);
 	uint8_t *row = ((uint8_t *)b->data + 
 		startX * BYTES_PER_PIXEL + startY * b->stride);
@@ -326,8 +327,7 @@ extern void DrawInternalBmp(
 			*dest = uColour;			
 			uint8_t alpha = (uint8_t)uColour;	
 			
-			if((dim.x > 5 && dim.x > 5) && 
-			   (y < 2 || x < 2 || y > maxY - 3 || x > maxX - 3)) {
+			if((y < 2 || x < 2 || y > maxY - 3 || x > maxX - 3)) {
 				alpha /= 1.75f;
 			} else if((dim.x > 5 && dim.y > 5) && 
 			   (y < 3 || x < 3 || y > maxY - 4 || x > maxX - 4)) {
@@ -348,11 +348,13 @@ extern void DrawInternalBmp(
 	}
 }
 
+#define PI32 3.14159265358979323846f
+
 extern void ProcessRenderJobs(
 	struct game_state *state,
 	struct screen_buffer *b)
 {
-	float colourMod = sin(state->timer.currentTime); 
+	float colourMod = 0.1f * sin(state->timer.currentTime / 85000) + 1.0f; 
 	for(int32_t i = 0; i < state->renderJobCount; ++i) {
 		union render_job *job = &state->renderJobs[i];
 		switch(job->glyph.type) {

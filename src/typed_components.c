@@ -49,7 +49,7 @@ extern void IncrementProgressRect(
 	char character = line->string.contents[inputString->string.length - 1].glyph;
 	if(character == '\0') {return;}
 	else {
-		progressRect->dim.x += GetCharacterWidth(state, character);
+		progressRect->dim.x += GetCharacterWidth(state, character) + 1.0f;
 	} 
 }
 
@@ -79,7 +79,7 @@ extern void ProcessInputString(
 		current->string.contents[current->string.length++].glyph =
 			state->input.inputCharacter;
 		current->string.lengthInPixels += GetCharacterWidth(state,
-			state->input.inputCharacter);
+			state->input.inputCharacter) + 1.0f;
 	}
 }
 
