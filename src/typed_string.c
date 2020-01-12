@@ -32,7 +32,7 @@ static char templateStrings[3][800] = {
 		"this wasn't the %s future they had planned, \"She should be %s %s or something %s like that!\" They "		//4
 		"would %s say to each other. But nothing would stop her, and now, 20 %s, and %s years later, she's still %s "	//4
 		"%s with the same %s as before, and has become a leading authority in the %s of %s. Her papers on the "	//4
-		"%s %ss of the region have become somee of the most %s in the field, and earned her the %s, %s %s "	//6
+		"%s %ss of the region have become some of the most %s in the field, and earned her the %s, %s %s "	//6
 		"award. Try %s a %s with a CV like that. So please %s welcome our keynote speaker, the %s woman with the "	//4
 		"hair weaved entirely from %s, and %s %ss!\", \"My %s thanks, Leslie.\"\0"					//4			//4
 	}, {
@@ -85,8 +85,9 @@ static char *nouns[] = {
 	"idea", "saucepan", "dishcloth", "lemon", "salmon", "WD40", "screwdriver", "trousers",
 	"dog", "parrot", "bicycle", "pot plant", "emotion", "emulsion", "paint", "eiderdown",
 	"biscuit", "glove", "hoover", "chicken", "pony", "bath", "fishing rod", "peanut", 
-	"furniture", "crash mat", "snooker cue", "unwashed masses", "wahsing line", "epilator",
-	"yard", "mud", "hamster", "cake"
+	"furniture", "crash mat", "snooker cue", "unwashed masses", "washing line", "epilator",
+	"yard", "mud", "hamster", "cake", "snot", "wendy house", "mallet", "tent", "caramel",
+	"foam", "perfume", "cardigan", "cowboy boot", "cheese knife", "tomato"
 };
 
 static char *ingVerbs[] = {
@@ -94,7 +95,7 @@ static char *ingVerbs[] = {
 	"icing", "dressing", "picking", "working", "licking", "kissing", "hiding", "filing",
 	"riding", "running", "walking", "stopping", "tickling", "cooking", "preparing",
 	"waxing", "plucking", "shaving", "agitating", "frightening", "explaining", "saying",
-	"smelling", "annoying", "decanting", "sailing"
+	"smelling", "annoying", "decanting", "sailing", "poking", "combing", "painting"
 };
 
 static char *verbs[] = {
@@ -102,7 +103,7 @@ static char *verbs[] = {
 	"ice", "dress", "pick", "work", "lick", "kiss", "hide", "file",
 	"ride", "run", "walk", "stop", "tickle", "cook", "prepare",
 	"wax", "pluck", "shave", "agitate", "frighten", "explain", "say",
-	"smell", "annoy", "decant", "sail"
+	"smell", "annoy", "decant", "sail", "poke", "comb", "paint"
 };
 
 static char *adjectives[] = {
@@ -110,7 +111,7 @@ static char *adjectives[] = {
 	"shiney", "glossy", "dull", "painful", "vague", "naive", "innocent", "vulgar",
 	"stoic", "extatic", "ill-advised", "homely", "beautiful", "ropey", "spicey",
 	"doomed", "charismatic", "funny", "hilarious", "jubilant", "wanton", "unnecessary",
-	"interesting", "disquieting", "stupid", "reckless", 
+	"interesting", "disquieting", "stupid", "reckless", "sheepish"
 };
 
 static char *lyAdjectives[] = {
