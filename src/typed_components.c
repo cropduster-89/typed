@@ -49,7 +49,7 @@ extern void IncrementProgressRect(
 	char character = line->string.contents[inputString->string.length - 1].glyph;
 	if(character == '\0') {return;}
 	else {
-		progressRect->dim.x += GetCharacterWidth(state, character) + 1.0f;
+		progressRect->dim.x += GetCharacterWidth(state, character);
 	} 
 }
 
@@ -63,7 +63,7 @@ extern void UpdateProgressRect(
 		struct entity_event *event = NewEvent(state, current->index, EVENT_MOVEUP);
 		NewMoveEvent(state, event, FloatToVec2(current->pos.x, current->pos.y + 25.0f),
 			FloatToVec2(0, 6.0f));
-	} else if(INPUT_ISSET(state)) {
+	} else if(INPUT_ISSET(state) && !INPUT_WRONG_ISSET(state)) {
 		IncrementProgressRect(state, current);
 	}
 }
@@ -79,11 +79,10 @@ extern void ProcessInputString(
 		current->string.contents[current->string.length++].glyph =
 			state->input.inputCharacter;
 		uint32_t newLength = GetCharacterWidth(state,
-			state->input.inputCharacter) + 1.0f;
+			state->input.inputCharacter);
 		current->string.lengthInPixels += newLength;
-		
 		struct entity *cursorRect = GetEntityByAlias(state, ENTALIAS_INPUTCURSOR);
-		cursorRect->pos.x += newLength;
+		cursorRect->pos.x += newLength;	
 	}
 }
 

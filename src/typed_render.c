@@ -118,7 +118,7 @@ extern void PushString(
 			.y = alignedY,
 		};
 		PushLetter(state, character, colour, adjustedPos, clipRect);
-		pos.x += (GetCharacterWidth(state, glyph) + 1.0f); 
+		pos.x += (GetCharacterWidth(state, glyph)); 
 	}
 }
 

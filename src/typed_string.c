@@ -225,7 +225,7 @@ extern uint32_t GetCharacterWidth(
 	} else {	
 		struct loaded_character *character = 
 			GetCharacter(glyph, state->characterBuffer);
-		result = character->x * SCALE;
+		result = character->x * SCALE + 1.0f;
 	}	
 	return(result);
 }

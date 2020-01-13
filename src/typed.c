@@ -113,6 +113,7 @@ extern void RestartGame(
 	state->atLine = 0;
 	GetEntityByAlias(state, ENTALIAS_WPMBAR)->dim.x = 0;
 	GetEntityByAlias(state, ENTALIAS_ACCBAR)->dim.x = 0;
+	GetProgressRect(state)->dim.x = 0;
 	UpdateWPM(state);
 	UpdateAcc(state);
 	DeleteAllEntitiesOfType(state, ENTTYPE_OUTPUTSTRING);	
