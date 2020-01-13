@@ -75,7 +75,7 @@ static void CreateInput(
 	struct entity *inputControl = NewEntity(state, inputPos, inputdim, ENTTYPE_INPUTSTRING);	
 	
 	union vec2 cursorDim = FloatToVec2(5.0f, 20.0f);
-	inputPos.y -= 2.0f;	
+	inputPos.y -= 3.0f;	
 	struct entity *cursor = NewEntity(state, inputPos, cursorDim, ENTTYPE_CURSORRECT);
 	cursor->rect.parentIndex = inputControl->index;
 	cursor->rect.colour = COL_GREEN;
