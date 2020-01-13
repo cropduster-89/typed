@@ -126,6 +126,45 @@ extern void ClearInput(
 	inputControl->string.lengthInPixels = 0;
 }
 
+static void UpdateInitScrollOut(
+	struct game_state *state,
+	struct entity *current)
+{
+	struct entity_event *event = NewEvent(state, current->index, EVENT_MOVELEFT);
+	NewMoveEvent(state, event, FloatToVec2(-100, current->pos.y), FloatToVec2(-7.3f, 0));
+	current->string.position = UPHASE_SCROLLOUT;
+}
+
+static void UpdateInitScrollIn(
+	struct game_state *state,
+	struct entity *current)
+{
+	struct entity_event *event = NewEvent(state, current->index, EVENT_MOVELEFT);
+	current->pos.x = bufferX;
+	union vec2 destination = {
+		.x = bufferX * 0.25f + 12.0f,
+		.y = current->pos.y
+	};
+	NewMoveEvent(state, event, destination, FloatToVec2(-7.3f, 0));
+	char *newUpdate;
+	if(state->score.wpm < 60) {
+		newUpdate = encouragementStrings[rand() % ARRAY_COUNT(encouragementStrings)];
+	} else {
+		newUpdate = praiseStrings[rand() % ARRAY_COUNT(praiseStrings)];
+	}
+	CreateLabel(current, newUpdate, CHARSTATE_BLACK);
+	current->string.position = UPHASE_SCROLLIN;
+}
+
+static void UpdateInitIdle(
+	struct game_state *state,
+	struct entity *current)
+{
+	struct entity_event *event = NewEvent(state, current->index, EVENT_FLASH);
+	NewFlashEvent(&state->timer, event, SECOND * 2, 150000ull);
+	current->string.position = UPHASE_IDLE;
+}
+
 extern void ProcessUpdateString(
 	struct game_state *state,
 	struct entity *current)
@@ -133,31 +172,13 @@ extern void ProcessUpdateString(
 	if(ACTIVE_GAME(state) && !HasActiveEvent(state, current->index)) {
 		switch(current->string.position) {
 		case UPHASE_IDLE: {
-			struct entity_event *event = NewEvent(state, current->index, EVENT_MOVELEFT);
-			NewMoveEvent(state, event, FloatToVec2(-100, current->pos.y), FloatToVec2(-7.3f, 0));
-			current->string.position = UPHASE_SCROLLOUT;
+			UpdateInitScrollOut(state, current);
 			break;
 		} case UPHASE_SCROLLOUT: {
-			struct entity_event *event = NewEvent(state, current->index, EVENT_MOVELEFT);
-			current->pos.x = bufferX;
-			union vec2 destination = {
-				.x = bufferX * 0.25f + 12.0f,
-				.y = current->pos.y
-			};
-			NewMoveEvent(state, event, destination, FloatToVec2(-7.3f, 0));
-			char *newUpdate;
-			if(state->score.wpm < 60) {
-				newUpdate = encouragementStrings[rand() % ARRAY_COUNT(encouragementStrings)];
-			} else {
-				newUpdate = praiseStrings[rand() % ARRAY_COUNT(praiseStrings)];
-			}
-			CreateLabel(current, newUpdate, CHARSTATE_BLACK);
-			current->string.position = UPHASE_SCROLLIN;
+			UpdateInitScrollIn(state, current);
 			break;
 		} case UPHASE_SCROLLIN: {
-			struct entity_event *event = NewEvent(state, current->index, EVENT_FLASH);
-			NewFlashEvent(&state->timer, event, SECOND * 2, 150000ull);
-			current->string.position = UPHASE_IDLE;
+			UpdateInitIdle(state, current);
 			break;
 		} default: INVALID_PATH;
 		}

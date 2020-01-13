@@ -5,7 +5,8 @@
   / /  | |_| | |_) |  __/ (_| |		
   \/    \__, | .__/ \___|\__,_|		*SIMD! (3rd time lucky?)
         |___/|_|               		*make sine modulation pulse more slowly
-					how to do this smoothly?
+					how to do this smoothly with visible transisiton?
+					change with typing speed?
 ********************************************************************************/
 
 static void PushRenderJob(
@@ -157,8 +158,8 @@ static void WriteBmpToBuffer(
 	union vec2 yAxis = FloatToVec2(0, character->y * scale); 
 	float xLengthIverted = 1.0f / LengthSqVec2(xAxis);
 	float yLengthIverted = 1.0f / LengthSqVec2(yAxis);
-	union vec2 nXAxis = MultVec2(xAxis, xLengthIverted);
-	union vec2 nYAxis = MultVec2(yAxis, yLengthIverted);
+	union vec2 nXAxis = MULT_VEC(xAxis, xLengthIverted);
+	union vec2 nYAxis = MULT_VEC(yAxis, yLengthIverted);
 	
 	int32_t xMaxInit = clipRect.max.x;
 	int32_t yMaxInit = clipRect.max.y;
@@ -317,7 +318,7 @@ extern void DrawInternalBmp(
 {
 	int32_t maxX = dim.x;
 	int32_t maxY = dim.y;
-	colour = ClampColourV4(MultVec4(colour, 3.5f));
+	colour = ClampColourV4(MULT_VEC(colour, 3.5f));
 	uint32_t uColour = UnpackColour(colour);
 	uint8_t *row = (uint8_t *)data;
 	uint32_t line = dim.y / 3 - 4;
@@ -348,26 +349,35 @@ extern void DrawInternalBmp(
 	}
 }
 
+static float SineWavePulse(
+	uint64_t time,
+	float amplitude,
+	float frequency,
+	float offset)
+{
+	return(amplitude * sin((float)time / frequency) + offset);
+}
+
 extern void ProcessRenderJobs(
 	struct game_state *state,
 	struct screen_buffer *b)
 {
-	float colourMod = 0.1f * sin(state->timer.currentTime / 85000) + 1.0f; 
+	float colourMod = SineWavePulse(state->timer.currentTime, 0.1f, 80000, 1.0f); 
 	for(int32_t i = 0; i < state->renderJobCount; ++i) {
 		union render_job *job = &state->renderJobs[i];
 		switch(job->glyph.type) {
 		case RJOB_LETTER: {		
-			job->glyph.colour.xyz = MultVec3(job->glyph.colour.xyz, colourMod);
+			job->glyph.colour.xyz = MULT_VEC(job->glyph.colour.xyz, colourMod);
 			WriteBmpToBuffer(b, (struct loaded_bmp *)job->glyph.asset, job->glyph.pos, 
 				job->glyph.colour, job->glyph.clipRect, SCALE);
 			break;
 		} case RJOB_BACKRECT: {		
-			job->rect.colour.xyz = MultVec3(job->rect.colour.xyz, colourMod);
+			job->rect.colour.xyz = MULT_VEC(job->rect.colour.xyz, colourMod);
 			WriteSolidColourToBuffer(b, job->rect.dim.x, job->rect.dim.y, job->rect.pos.x, 
 				job->rect.pos.y, job->rect.colour);
 			break;
 		} case RJOB_RECT: {			
-			job->rect.colour.xyz = MultVec3(job->rect.colour.xyz, colourMod);
+			job->rect.colour.xyz = MULT_VEC(job->rect.colour.xyz, colourMod);
 			WriteBmpToBuffer(b, job->rect.asset, job->rect.pos, 
 				job->rect.colour, FloatToRect2(0, 0, bufferX, bufferY), 1);
 			break;

@@ -128,17 +128,6 @@ extern union vec2 NegVec2(
 	return(result);
 } 
 
-extern union vec2 MultVec2(
-	union vec2 a,
-	float b)
-{
-	union vec2 result = {
-		.x = a.x * b,
-		.y = a.y * b
-	};
-	return(result);
-}
-
 extern union vec2 SubVec2(
 	union vec2 a,
 	union vec2 b)
@@ -185,6 +174,17 @@ extern union vec4 FloatToVec4(
 	return(result);
 }
 
+extern union vec2 MultVec2(
+	union vec2 a,
+	float b)
+{
+	union vec2 result = {
+		.x = a.x * b,
+		.y = a.y * b
+	};
+	return(result);
+}
+
 extern union vec3 MultVec3(
 	union vec3 a,
 	float b)
@@ -209,6 +209,11 @@ extern union vec4 MultVec4(
 	};
 	return(result);
 }
+
+#define MULT_VEC(a, b) _Generic((a), \
+union vec2 : MultVec2, \
+union vec3 : MultVec3, \
+union vec4 : MultVec4) ((a), (b))
 
 extern union vec4 AddVec4(
 	union vec4 a,

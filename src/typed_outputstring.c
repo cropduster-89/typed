@@ -4,7 +4,8 @@
    / /\/ | | | '_ \ / _ \/ _` |
   / /  | |_| | |_) |  __/ (_| |		*handle state and events for 
   \/    \__, | .__/ \___|\__,_|		lines of output text
-        |___/|_|               
+        |___/|_|               		TODO: scroll output no longer needed,
+					can just pass to event creation
 ********************************************************************************/
 
 extern bool DrawOutput(

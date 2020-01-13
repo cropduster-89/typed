@@ -17,9 +17,7 @@ static void DrawBackRect(
 	struct game_state *state,
 	struct entity *current)
 {
-	if(BITCHECK(current->state, ENTSTATE_INVISIBLE)) {
-		return;
-	} else {		
+	if(!BITCHECK(current->state, ENTSTATE_INVISIBLE)) {		
 		PushBackRect(state, current->pos, current->dim, current->rect.colour);
 	}
 }
@@ -28,9 +26,7 @@ static void DrawRect(
 	struct game_state *state,
 	struct entity *current)
 {
-	if(BITCHECK(current->state, ENTSTATE_INVISIBLE)) {
-		return;
-	} else {		
+	if(!BITCHECK(current->state, ENTSTATE_INVISIBLE)) {		
 		PushRect(state, current->rect.assetIndex, current->pos, current->dim, current->rect.colour);
 	}
 }
@@ -39,9 +35,7 @@ static void DrawString(
 	struct game_state *state,
 	struct entity *current)
 {
-	if(BITCHECK(current->state, ENTSTATE_INVISIBLE)) {
-		return;
-	} else {
+	if(!BITCHECK(current->state, ENTSTATE_INVISIBLE)) {		
 		struct rect2 cliprect = BITCHECK(current->state, ENTSTATE_ISCLIPPED) ?
 			current->clipRect : FloatToRect2(0, 0, bufferX, bufferY);
 		PushString(state, current, cliprect);
@@ -195,11 +189,10 @@ extern void GameLoop(
 	if(ACTIVE_GAME(state)) {
 		if(TimeIsUp(&state->timer)) {
 			EndGame(state);
-		} else {			
-			ComputeScore(state);
-			UpdateWPM(state);
-			UpdateAcc(state);
-		}		
+		} 		
+		ComputeScore(state);
+		UpdateWPM(state);
+		UpdateAcc(state);				
 	}	
 	ProcessEntities(state);	
 	ProcessEvent(state);
