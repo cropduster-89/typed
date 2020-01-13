@@ -113,7 +113,9 @@ extern void RestartGame(
 	state->atLine = 0;
 	GetEntityByAlias(state, ENTALIAS_WPMBAR)->dim.x = 0;
 	GetEntityByAlias(state, ENTALIAS_ACCBAR)->dim.x = 0;
-	GetProgressRect(state)->dim.x = 0;
+	struct entity *inputString = GetEntityByAlias(state, ENTALIAS_INPUTSTRING);
+	struct entity *cursorRect = GetEntityByAlias(state, ENTALIAS_INPUTCURSOR);
+	cursorRect->pos.x = inputString->pos.x;
 	UpdateWPM(state);
 	UpdateAcc(state);
 	DeleteAllEntitiesOfType(state, ENTTYPE_OUTPUTSTRING);	
@@ -143,6 +145,8 @@ static void EndGame(
 	struct entity *progressRect = GetProgressRect(state);
 	DeleteEntityAt(state, progressRect->index);
 	struct entity *inputString = GetEntityByAlias(state, ENTALIAS_INPUTSTRING);
+	struct entity *cursorRect = GetEntityByAlias(state, ENTALIAS_INPUTCURSOR);
+	cursorRect->pos.x = inputString->pos.x;
 	inputString->string.length = 0;
 	inputString->string.lengthInPixels = 0;
 	ResetTimerRects(state);

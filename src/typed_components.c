@@ -75,6 +75,8 @@ extern void ProcessInputString(
 	if(RETURN_ISSET(state)) {
 		current->string.length = 0;
 		current->string.lengthInPixels = 0;
+		struct entity *cursorRect = GetEntityByAlias(state, ENTALIAS_INPUTCURSOR);
+		cursorRect->pos.x = current->pos.x;	
 	} else if(INPUT_ISSET(state)) {		
 		current->string.contents[current->string.length++].glyph =
 			state->input.inputCharacter;
