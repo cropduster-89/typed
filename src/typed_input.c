@@ -20,20 +20,20 @@ static bool TakingPgDn(
 	return(!ACTIVE_GAME(state) && state->atLine < state->outputLines && FreeEvent(state));
 }
 
+static bool EndOfLine(
+	struct game_state *state,
+	struct entity *inputString)
+{
+	int32_t length = GetCurrentOutputLine(state)->string.length - 2;		
+	return(inputString->string.length >= length);
+}
+
 static bool TakingInput(
 	struct game_state *state,
 	struct entity *inputControl)
 {
 	return(state->input.inputCharacter != '\0' && !BITCHECK(state->global, GLOBAL_POST) &&
-	       inputControl->string.lengthInPixels < inputControl->dim.x);
-}
-
-static bool EndOfLine(
-	struct game_state *state,
-	struct entity *inputString)
-{
-	struct entity *line = GetCurrentOutputLine(state);		
-	return(inputString->string.length >= line->string.length);
+	       inputControl->string.lengthInPixels < inputControl->dim.x && !EndOfLine(state, inputControl));
 }
 
 static bool TakingReturn(

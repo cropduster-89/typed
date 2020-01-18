@@ -14,7 +14,7 @@ extern void LoadFont(
 	uint8_t* charBuffer,
 	char *fileName)
 {
-	int32_t charCount = '~' - '!';
+	int32_t charCount = '~' - '!' + 1;
 
 	struct file_read_output file = api.ReadFile(fileName);
 	stbtt_fontinfo font;
@@ -22,11 +22,18 @@ extern void LoadFont(
 		stbtt_GetFontOffsetForIndex((uint8_t*)file.contents, 0));
 	uint32_t sizeTotal = sizeof(struct asset_header) * charCount;
 
-	for(int32_t i = '!'; i < '~'; ++i) {
+	for(int32_t i = '!'; i <= '~'; ++i) {		
+		int32_t codepoint;
+		if(i != '~') {
+			codepoint = i;
+		} else {
+			codepoint = 0x2190;
+		}
+		
 		struct loaded_character* result = 
 			(struct loaded_character*)(charBuffer + sizeTotal);
 		uint8_t *monoBmp = stbtt_GetCodepointBitmap(&font, 0,
-			stbtt_ScaleForPixelHeight(&font, 48.0f), i,
+			stbtt_ScaleForPixelHeight(&font, 48.0f), codepoint,
 			&result->x, &result->y, &result->alignX, &result->alignY);
 #ifdef DEBUG
 		assert(monoBmp);
@@ -56,6 +63,7 @@ extern void LoadFont(
 		stbtt_FreeBitmap(monoBmp, 0);
 		sizeTotal += size;
 	}
+	api.DeAllocate(file.contents);
 }
 
 extern void LoadBmps(

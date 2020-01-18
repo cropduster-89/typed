@@ -204,6 +204,8 @@ extern void ConvertString(
 		entity->contents[i].glyph = *current;
 		entity->contents[i].state = state;
 	}
+	entity->contents[entity->length++].glyph = ' ';
+	entity->contents[entity->length++].glyph = '~';
 }
 
 extern void ChangeLabelState(
@@ -254,7 +256,6 @@ extern void InitNewLine(
 {
 	BITSET(line->state, ENTSTATE_ISCLIPPED);
 	line->clipRect = clipRect;
-	line->string.backgroundCount = 1;
 }
 
 static void CreateOutputEntities(
@@ -282,7 +283,7 @@ static void CreateOutputEntities(
 	InitNewLine(newEntity, outputClipRect);
 		
 	uint32_t totalines = 0;		
-	uint32_t overflow = dim.x - 60.0f;
+	uint32_t overflow = dim.x - 20.0f;
 	char *startFrom = state->outputStringBuffer;
 	char *current = startFrom;
 	char *lastSpace = startFrom;
@@ -293,7 +294,7 @@ static void CreateOutputEntities(
 				GetCharacterWidth(state, *current);
 		}		
 		if(newEntity->string.lengthInPixels > overflow) {	
-			length +=  current - lastSpace;
+			length +=  current - lastSpace;			
 			ConvertString(startFrom, lastSpace, &newEntity->string, CHARSTATE_NEUTRAL);
 			pos.y -= 25.0f;
 			newEntity = NewEntity(state, pos, dim, ENTTYPE_OUTPUTSTRING);	

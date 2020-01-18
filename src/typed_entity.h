@@ -111,8 +111,6 @@ struct entity_string {
  	struct entity_character contents[MAX_STRINGLENGTH];
 	uint32_t length;
 	uint32_t lengthInPixels;		
-	int32_t backgroundIndex;
-	int32_t backgroundCount;
 	union {
 		int32_t position;
 		int32_t score;

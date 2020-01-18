@@ -12,7 +12,7 @@
 ********************************************************************************/
 
 #define MAX_ENTITIES 128
-#define MAX_EVENTS 24
+#define MAX_EVENTS 1024
 #define MAX_RENDERJOBS 1024
 
 #define ACTIVE_GAME(state) BITCHECK(state->global, GLOBAL_GAME)

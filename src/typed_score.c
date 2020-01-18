@@ -2,7 +2,7 @@
   _____                      _ 
  /__   \_   _ _ __   ___  __| |		Score implementation
    / /\/ | | | '_ \ / _ \/ _` |
-  / /  | |_| | |_) |  __/ (_| |		*alomst decoupled, except for CompareInput, change letter state elsewhere? 
+  / /  | |_| | |_) |  __/ (_| |		
   \/    \__, | .__/ \___|\__,_|		*TODO no need for ComputeCorrectWords
         |___/|_|               		to loop anymore, fix
 ********************************************************************************/
@@ -18,7 +18,7 @@ static void ComputeCorrectWords(
 		char input = inputString->string.contents[i].glyph;
 		char output = line->string.contents[i].glyph;
 		bool correctLetter = (input == output);
-		if(input == ' ' || line->string.contents[i + 1].glyph == '\0') {
+		if(input == ' ' || i == line->string.length - 2) {
 			if(completeWord) {
 				correctWords++;
 			}

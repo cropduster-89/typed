@@ -119,7 +119,7 @@ LRESULT CALLBACK WindowProc(
 		break;
 	} case WM_CREATE: {
 		struct game_state *state = (struct game_state *)win32_Allocate(sizeof(struct game_state));
-		state->characterBuffer = win32_Allocate(KILOBYTES(500));
+		state->characterBuffer = win32_Allocate(KILOBYTES(250));
 		state->bmpBuffer = win32_Allocate(KILOBYTES(400));
 		SetClassLongPtrW(window, 0, (ULONG_PTR)state);
 		break;	

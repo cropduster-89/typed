@@ -47,9 +47,12 @@ extern void IncrementProgressRect(
 	struct entity *line = GetCurrentOutputLine(state);
 	struct entity *inputString = GetEntityByAlias(state, ENTALIAS_INPUTSTRING);
 	char character = line->string.contents[inputString->string.length - 1].glyph;
-	if(character == '\0') {return;}
+	if(character == '\0') ;
 	else {
 		progressRect->dim.x += GetCharacterWidth(state, character);
+		if(inputString->string.length >= line->string.length - 2) {			
+			progressRect->dim.x += 10.f;
+		}
 	} 
 }
 
